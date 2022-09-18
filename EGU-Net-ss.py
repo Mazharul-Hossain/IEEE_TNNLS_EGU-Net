@@ -249,7 +249,7 @@ def train_mynetwork(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lear
         sess.run(init)
 
         # Do the training loop
-        for epoch in range(num_epochs):
+        for epoch in range(1, num_epochs + 1):
             epoch_cost = 0.  # Defines a cost related to an epoch
             epoch_acc = 0.
             num_minibatches = int(m1 / minibatch_size)  # number of minibatches of size minibatch_size in the train set
@@ -268,19 +268,22 @@ def train_mynetwork(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lear
             epoch_cost_f = epoch_cost / (num_minibatches + 1)
             epoch_acc_f = epoch_acc / (num_minibatches + 1)
 
-            hi_res, abund, epoch_cost_dev, epoch_acc_dev = sess.run([x_mixed_de_layer, abundances_pure, cost, accuracy],
-                                                                    feed_dict={x_train_pure: x_mixed_set1,
-                                                                               x_train_mixed: x_mixed_set, y: y_test,
-                                                                               isTraining: True, keep_prob: 1})
-
-            if print_cost == True and epoch % 50 == 0:
-                print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
-                epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
             if print_cost == True and epoch % 5 == 0:
+
+                hi_res, abund, epoch_cost_dev, epoch_acc_dev = sess.run(
+                    [x_mixed_de_layer, abundances_pure, cost, accuracy],
+                    feed_dict={x_train_pure: x_mixed_set1,
+                               x_train_mixed: x_mixed_set, y: y_test,
+                               isTraining: True, keep_prob: 1})
+
                 costs.append(epoch_cost_f)
                 train_acc.append(epoch_acc_f)
                 costs_dev.append(epoch_cost_dev)
                 val_acc.append(epoch_acc_dev)
+
+                if epoch % 50 == 0:
+                    print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
+                        epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
 
         # plot the cost      
         plt.plot(np.squeeze(costs))
@@ -318,4 +321,4 @@ Y_test = TeLabel
 
 parameters, val_acc, high_res, abund = train_mynetwork(Pure_TrSet, Mixed_TrSet, Mixed_TrSet, Y_train, Y_test)
 sio.savemat('abund.mat', {'abund': abund})
-sio.savemat('abund.mat', {'recons': high_res})
+sio.savemat('hi_res.mat', {'hi_res': high_res})

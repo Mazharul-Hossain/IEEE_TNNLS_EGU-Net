@@ -51,11 +51,11 @@ conda create --name egutf1 python=3.7
 #     $ conda deactivate
 
 conda install -y numpy=1.16.4
-conda install -y -c anaconda tensorflow-gpu=1.4
-conda install -y -c conda-forge matplotlib
+conda install -y -c anaconda tensorflow-gpu=1.14
 python -m pip install PyQt5
+conda install -y -c conda-forge matplotlib
 
-conda update scipy  # if error 
+conda update scipy  # if error
 ```
 
 How to use it?
