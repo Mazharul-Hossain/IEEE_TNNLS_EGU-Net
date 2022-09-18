@@ -90,7 +90,7 @@ def initialize_parameters():
     return parameters
 
 
-def mynetwork(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9):
+def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9):
     x_pure_image = tf.reshape(x_pure, [-1, 1, 1, 224], name="x_pure_image")
     x_mixed_image = tf.reshape(x_mixed, [1, 200, 200, 224], name="x_mixed_image")
 
@@ -193,7 +193,7 @@ def mynetwork(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9):
     return x_pure_z4, abundances_mixed, x_mixed_de_a4, l2_loss, abundances_pure
 
 
-def mynetwork_optimaization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, global_step):
+def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, global_step):
     r3 = tf.reshape(r2, [200, 200, 224])
 
     with tf.name_scope("cost"):
@@ -207,7 +207,7 @@ def mynetwork_optimaization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
     return cost, optimizer
 
 
-def train_mynetwork(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, learning_rate_base=0.1, beta_reg=0.005,
+def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, learning_rate_base=0.1, beta_reg=0.005,
                     num_epochs=200, minibatch_size=8000, print_cost=True):
     ops.reset_default_graph()
     tf.set_random_seed(1)
@@ -226,7 +226,7 @@ def train_mynetwork(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lear
     parameters = initialize_parameters()
 
     with tf.name_scope("network"):
-        x_pure_layer, x_mixed_layer, x_mixed_de_layer, l2_loss, abundances_pure = mynetwork(x_train_pure, x_train_mixed,
+        x_pure_layer, x_mixed_layer, x_mixed_de_layer, l2_loss, abundances_pure = my_network(x_train_pure, x_train_mixed,
                                                                                             parameters, isTraining,
                                                                                             keep_prob)
 
@@ -235,7 +235,7 @@ def train_mynetwork(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lear
         learning_rate_base, global_step, m / minibatch_size, 0.99)
 
     with tf.name_scope("optimization"):
-        cost, optimizer = mynetwork_optimaization(x_pure_layer, y, x_mixed_de_layer, x_train_mixed, l2_loss, beta_reg,
+        cost, optimizer = my_network_optimization(x_pure_layer, y, x_mixed_de_layer, x_train_mixed, l2_loss, beta_reg,
                                                   learning_rate, global_step)
 
     with tf.name_scope("metrics"):
@@ -319,6 +319,6 @@ TeLabel = TeLabel['TeLabel']
 Y_train = TrLabel
 Y_test = TeLabel
 
-parameters, val_acc, high_res, abund = train_mynetwork(Pure_TrSet, Mixed_TrSet, Mixed_TrSet, Y_train, Y_test)
+parameters, val_acc, high_res, abund = train_my_network(Pure_TrSet, Mixed_TrSet, Mixed_TrSet, Y_train, Y_test)
 sio.savemat('abund.mat', {'abund': abund})
 sio.savemat('hi_res.mat', {'hi_res': high_res})
