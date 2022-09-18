@@ -268,7 +268,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
             epoch_cost_f = epoch_cost / (num_minibatches + 1)
             epoch_acc_f = epoch_acc / (num_minibatches + 1)
 
-            if print_cost == True and epoch % 5 == 0:
+            if print_cost is True and epoch % 5 == 0:
 
                 hi_res, abund, epoch_cost_dev, epoch_acc_dev = sess.run(
                     [x_mixed_de_layer, abundances_pure, cost, accuracy],
@@ -299,7 +299,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
         plt.xlabel('iterations (per tens)')
         plt.title("Learning rate =" + str(learning_rate))
         plt.show()
-        # lets save the parameters in a variable
+        # lets save the l_parameters in a variable
         parameters = sess.run(parameters)
         print("Parameters have been trained!")
         return parameters, val_acc, hi_res.squeeze(), abund
