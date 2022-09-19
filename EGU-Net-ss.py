@@ -220,6 +220,8 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     costs_dev = []
     train_acc = []
     val_acc = []
+    plot_epoch = []
+    plot_lr = []
 
     x_train_pure, x_train_mixed, y, isTraining, keep_prob = create_placeholders(n_x1, n_x2, n_y)
 
@@ -270,8 +272,8 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
             if print_cost is True and epoch % 5 == 0:
 
-                hi_res, abund, epoch_cost_dev, epoch_acc_dev = sess.run(
-                    [x_mixed_de_layer, abundances_pure, cost, accuracy],
+                re, abund, epoch_cost_dev, epoch_acc_dev, lr = sess.run(
+                    [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate],
                     feed_dict={x_train_pure: x_mixed_set1,
                                x_train_mixed: x_mixed_set, y: y_test,
                                isTraining: True, keep_prob: 1})
@@ -280,29 +282,42 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
                 train_acc.append(epoch_acc_f)
                 costs_dev.append(epoch_cost_dev)
                 val_acc.append(epoch_acc_dev)
+                plot_epoch.append(epoch)
+                plot_lr.append(lr)
 
-                if epoch % 50 == 0:
+                if epoch % 20 == 0:
                     print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
                         epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
 
-        # plot the cost      
-        plt.plot(np.squeeze(costs))
-        plt.plot(np.squeeze(costs_dev))
-        plt.ylabel('cost')
-        plt.xlabel('iterations (per tens)')
-        plt.title("Learning rate =" + str(learning_rate))
+        _, axes = plt.subplots(nrows=1, ncols=3, figsize = (15, 5) )
+        
+        # plot the cost
+        axes[0].plot(plot_epoch, np.squeeze(costs))
+        axes[0].plot(plot_epoch, np.squeeze(costs_dev))
+        axes[0].set_ylabel('cost')
+        axes[0].set_xlabel('iterations (per tens)')
+        axes[0].set_title("Training-Val Cost")
+
+        # plot the learning rate
+        axes[1].plot(plot_epoch, plot_lr)
+        axes[1].set_ylabel('Learning rate')
+        axes[1].set_xlabel('iterations (per tens)')
+        axes[1].set_title("Training-LR")
+
+        # plot the accuracy
+        axes[2].plot(plot_epoch, np.squeeze(train_acc))
+        axes[2].plot(plot_epoch, np.squeeze(val_acc))
+        axes[2].set_ylabel('accuracy')
+        axes[2].set_xlabel('iterations (per tens)')
+        axes[2].set_title("Training-Val Absolute Error")
+
+        plt.savefig('Training-Val-Report.png', bbox_inches='tight')
         plt.show()
-        # plot the accuracy 
-        plt.plot(np.squeeze(train_acc))
-        plt.plot(np.squeeze(val_acc))
-        plt.ylabel('accuracy')
-        plt.xlabel('iterations (per tens)')
-        plt.title("Learning rate =" + str(learning_rate))
-        plt.show()
+
         # lets save the l_parameters in a variable
         parameters = sess.run(parameters)
         print("Parameters have been trained!")
-        return parameters, val_acc, hi_res.squeeze(), abund
+        return parameters, val_acc, re.squeeze(), abund
 
 
 Pure_TrSet = scio.loadmat('Data/Pure_TrSet.mat')
