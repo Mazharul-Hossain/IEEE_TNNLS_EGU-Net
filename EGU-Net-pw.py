@@ -246,7 +246,7 @@ def train_my_network(x_pure_set, x_mixed_set, y_train, y_test, learning_rate_bas
         axes[2].plot(plot_epoch, np.squeeze(val_acc))
         axes[2].set_ylabel('accuracy')
         axes[2].set_xlabel('iterations (per tens)')
-        axes[2].set_title("Training-Val Absolute Error Learning rate =" + str(learning_rate))
+        axes[2].set_title("Training-Val Absolute Error")
 
         plt.savefig('Training-Val-Report.png', bbox_inches='tight')
         plt.show()

@@ -66,7 +66,7 @@ fully-connected networks (EGU-Net-pw), spatial-spectral EGU-Net using convolutio
 more details, please refer to the paper.
 
 ```bash
-screen -SL dataset
+screen -SL EGU-Net
 cd /home/mazhar/workplace/IEEE_TNNLS_EGU-Net/
 git pull
 
