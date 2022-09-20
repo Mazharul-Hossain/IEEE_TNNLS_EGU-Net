@@ -64,30 +64,28 @@ def initialize_parameters():
                              initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
     x_deb4 = tf.get_variable("x_deb4", [224], initializer=tf.zeros_initializer())
 
-    parameters = {"x_w1": x_w1,
-                  "x_b1": x_b1,
-                  "x_w2": x_w2,
-                  "x_b2": x_b2,
-                  "x1_conv_w1": x1_conv_w1,
-                  "x1_conv_b1": x1_conv_b1,
-                  "x1_conv_w2": x1_conv_w2,
-                  "x1_conv_b2": x1_conv_b2,
-                  "x_w3": x_w3,
-                  "x_b3": x_b3,
-                  "x_w4": x_w4,
-                  "x_b4": x_b4,
-                  "x1_conv_w4": x1_conv_w4,
-                  "x1_conv_b4": x1_conv_b4,
-                  "x_dew1": x_dew1,
-                  "x_deb1": x_deb1,
-                  "x_dew2": x_dew2,
-                  "x_deb2": x_deb2,
-                  "x_dew3": x_dew3,
-                  "x_deb3": x_deb3,
-                  "x_dew4": x_dew4,
-                  "x_deb4": x_deb4}
-
-    return parameters
+    return {"x_w1": x_w1,
+            "x_b1": x_b1,
+            "x_w2": x_w2,
+            "x_b2": x_b2,
+            "x1_conv_w1": x1_conv_w1,
+            "x1_conv_b1": x1_conv_b1,
+            "x1_conv_w2": x1_conv_w2,
+            "x1_conv_b2": x1_conv_b2,
+            "x_w3": x_w3,
+            "x_b3": x_b3,
+            "x_w4": x_w4,
+            "x_b4": x_b4,
+            "x1_conv_w4": x1_conv_w4,
+            "x1_conv_b4": x1_conv_b4,
+            "x_dew1": x_dew1,
+            "x_deb1": x_deb1,
+            "x_dew2": x_dew2,
+            "x_deb2": x_deb2,
+            "x_dew3": x_dew3,
+            "x_deb3": x_deb3,
+            "x_dew4": x_dew4,
+            "x_deb4": x_deb4}
 
 
 def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9):
@@ -126,15 +124,14 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
 
     with tf.name_scope("x_layer_3"):
         x_pure_a2 = tf.reshape(x_pure_a2, [-1, 1, 1, 128])
-        x_mixed_conv_a2_shape = x_mixed_conv_a2.get_shape().as_list()
-        x_mixed_a2 = tf.reshape(x_mixed_conv_a2, [1, x_mixed_conv_a2_shape[1], x_mixed_conv_a2_shape[2], 128])
-
         x_pure_z3 = tf.nn.conv2d(x_pure_a2, parameters['x_w3'], strides=[1, 1, 1, 1], padding='SAME') + parameters[
             'x_b3']
         x_pure_z3_bn = tf.layers.batch_normalization(x_pure_z3, axis=3, momentum=momentum, training=isTraining,
                                                      name='l3')
         x_pure_a3 = tf.nn.relu(x_pure_z3_bn)
 
+        x_mixed_conv_a2_shape = x_mixed_conv_a2.get_shape().as_list()
+        x_mixed_a2 = tf.reshape(x_mixed_conv_a2, [1, x_mixed_conv_a2_shape[1], x_mixed_conv_a2_shape[2], 128])
         x_mixed_z3 = tf.nn.conv2d(x_mixed_a2, parameters['x_w3'], strides=[1, 1, 1, 1], padding='SAME') + parameters[
             'x_b3']
         x_mixed_z3_bn = tf.layers.batch_normalization(x_mixed_z3, axis=3, momentum=momentum, training=isTraining,
@@ -194,6 +191,7 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
 
 
 def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, global_step):
+    r1 = r1.squeeze()
     r3 = tf.reshape(r2, [200, 200, 224])
 
     with tf.name_scope("cost"):
