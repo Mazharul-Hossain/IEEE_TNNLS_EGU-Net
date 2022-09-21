@@ -196,13 +196,18 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
 
     with tf.name_scope("cost"):
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_est, labels=y_re)) \
-            * l2_loss + 1 * tf.reduce_mean(tf.abs(r1 - r3))
+            * l2_loss + 1 * tf.reduce_mean(tf.abs(r3 - r1))
 
     with tf.name_scope("optimization"):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+
     with tf.control_dependencies(update_ops):
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost, global_step=global_step)
-    return cost, optimizer
+        # https://github.com/tensorflow/docs/blob/r1.14/site/en/api_docs/python/tf/train/Optimizer.md
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        gradients, variables = zip(*optimizer.compute_gradients(cost))
+        gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
+        optimize = optimizer.apply_gradients(zip(gradients, variables), global_step=global_step)
+    return cost, optimize
 
 
 def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, learning_rate_base=0.1, beta_reg=0.005,
@@ -232,7 +237,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
     global_step = tf.Variable(0, trainable=False)
     learning_rate = tf.train.exponential_decay(
-        learning_rate_base, global_step, m / minibatch_size, 0.99)
+        learning_rate_base, global_step, m / minibatch_size, 0.999)
 
     with tf.name_scope("optimization"):
         cost, optimizer = my_network_optimization(x_pure_layer, y, x_mixed_de_layer, x_train_mixed, l2_loss, beta_reg,
