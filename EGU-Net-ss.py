@@ -209,11 +209,13 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
     with tf.control_dependencies(update_ops):
         # https://github.com/tensorflow/docs/blob/r1.14/site/en/api_docs/python/tf/train/Optimizer.md
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-        gradients, variables = zip(*optimizer.compute_gradients(cost, [v for v in tf.trainable_variables()]))
+        gradients, variables = zip(*optimizer.compute_gradients(cost))
         for g, v in zip(gradients, variables):
+            if "_w" in v.name or "_dew" in v.name:
+                continue
             tf.summary.histogram(v.name, v)
             tf.summary.histogram(v.name + '_grad', g)
-        gradients, _ = tf.clip_by_global_norm(gradients, 5)
+        gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
         optimize = optimizer.apply_gradients(zip(gradients, variables), global_step=global_step)
     return cost, optimize
 
