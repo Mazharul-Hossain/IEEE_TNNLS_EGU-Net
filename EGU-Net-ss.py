@@ -196,7 +196,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
 
     with tf.name_scope("cost"):
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_est, labels=y_re)) \
-               + reg * l2_loss + 1 * tf.reduce_mean(tf.abs(r1 - r3))
+            * l2_loss + 1 * tf.reduce_mean(tf.abs(r1 - r3))
 
     with tf.name_scope("optimization"):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
