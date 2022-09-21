@@ -211,9 +211,9 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
         gradients, variables = zip(*optimizer.compute_gradients(cost))
         for g, v in zip(gradients, variables):
-            if "_w" not in v.name and "_dew" not in v.name:
-                continue
-            tf.summary.histogram(v.name, v)
+            # if "_w" not in v.name and "_dew" not in v.name:
+            #     continue
+            # tf.summary.histogram(v.name, v)
             tf.summary.histogram(v.name + '_grad', g)
         gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
         optimize = optimizer.apply_gradients(zip(gradients, variables), global_step=global_step)
@@ -239,6 +239,8 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     x_train_pure, x_train_mixed, y, isTraining, keep_prob = create_placeholders(n_x1, n_x2, n_y)
 
     parameters = initialize_parameters()
+    for k, v in parameters.items():
+        tf.summary.histogram(k, v)
 
     with tf.name_scope("network"):
         x_pure_layer, x_mixed_layer, x_mixed_de_layer, l2_loss, abundances_pure = my_network(x_train_pure, x_train_mixed,
