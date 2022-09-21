@@ -249,7 +249,10 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     with tf.name_scope("metrics"):
 
         accuracy = tf.losses.absolute_difference(labels=y, predictions=abundances_pure)
-        reco_error = tf.losses.absolute_difference(labels=x_train_mixed, predictions=x_mixed_de_layer)
+        
+        r1_shape = x_mixed_de_layer.get_shape().as_list()
+        r3 = tf.reshape(x_train_mixed, [r1_shape[0], r1_shape[1], r1_shape[2]])
+        reco_error = tf.losses.absolute_difference(labels=r3, predictions=x_mixed_de_layer)
 
     init = tf.global_variables_initializer()
 
