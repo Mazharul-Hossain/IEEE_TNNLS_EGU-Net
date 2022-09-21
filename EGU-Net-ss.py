@@ -194,6 +194,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
     r1 = tf.squeeze(r1)
     # r3 = tf.reshape(r2, [200, 200, 224])
     r1_shape = r1.get_shape().as_list()
+    print(r1_shape, r2.get_shape().as_list())
     r3 = tf.reshape(r2, [r1_shape[0], r1_shape[1], r1_shape[2]])
 
     with tf.name_scope("cost"):
