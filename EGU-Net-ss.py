@@ -268,7 +268,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
                 (batch_x1, batch_x2, batch_y) = minibatch
                 _, minibatch_cost, minibatch_acc = sess.run([optimizer, cost, accuracy],
                                                             feed_dict={x_train_pure: batch_x1,
-                                                                       x_train_mixed: batch_x2, y: batch_y,
+                                                                       x_train_mixed: x_mixed_set, y: batch_y,
                                                                        isTraining: True, keep_prob: 0.9})
                 epoch_cost += minibatch_cost
                 epoch_acc += minibatch_acc
