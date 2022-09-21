@@ -1,4 +1,5 @@
 # import library
+import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -212,7 +213,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
         for g, v in zip(gradients, variables):
             tf.summary.histogram(v.name, v)
             tf.summary.histogram(v.name + '_grad', g)
-        gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
+        gradients, _ = tf.clip_by_global_norm(gradients, 5)
         optimize = optimizer.apply_gradients(zip(gradients, variables), global_step=global_step)
     return cost, optimize
 
@@ -262,6 +263,11 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
     # https://stackoverflow.com/a/48928133/2049763 https://stackoverflow.com/a/49100101/2049763
     merged = tf.summary.merge_all()
+    try:
+        shutil.rmtree('train_log_layer')
+    except Exception as ex:
+        print(ex)
+
     writer = tf.summary.FileWriter('train_log_layer', tf.get_default_graph())
 
     with tf.Session() as sess:
