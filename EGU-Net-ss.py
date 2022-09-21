@@ -22,47 +22,47 @@ def initialize_parameters():
 
     x_w1 = tf.get_variable("x_w1", [1, 1, 224, 256], dtype=tf.float32,
                            initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_b1 = tf.get_variable("x_b1", [256], initializer=tf.zeros_initializer())
+    x_b1 = tf.get_variable("x_b1", [256], initializer=tf.constant_initializer(0.1))
 
     x_w2 = tf.get_variable("x_w2", [1, 1, 256, 128], dtype=tf.float32,
                            initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_b2 = tf.get_variable("x_b2", [128], initializer=tf.zeros_initializer())
+    x_b2 = tf.get_variable("x_b2", [128], initializer=tf.constant_initializer(0.1))
 
     x1_conv_w1 = tf.get_variable("x1_conv_w1", [5, 5, 224, 256], dtype=tf.float32,
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x1_conv_b1 = tf.get_variable("x1_conv_b1", [256], initializer=tf.zeros_initializer())
+    x1_conv_b1 = tf.get_variable("x1_conv_b1", [256], initializer=tf.constant_initializer(0.1))
 
     x1_conv_w2 = tf.get_variable("x1_conv_w2", [3, 3, 256, 128], dtype=tf.float32,
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x1_conv_b2 = tf.get_variable("x1_conv_b2", [128], initializer=tf.zeros_initializer())
+    x1_conv_b2 = tf.get_variable("x1_conv_b2", [128], initializer=tf.constant_initializer(0.1))
 
     x_w3 = tf.get_variable("x_w3", [1, 1, 128, 32], dtype=tf.float32,
                            initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_b3 = tf.get_variable("x_b3", [32], initializer=tf.zeros_initializer())
+    x_b3 = tf.get_variable("x_b3", [32], initializer=tf.constant_initializer(0.1))
 
     x1_conv_w4 = tf.get_variable("x1_conv_w4", [1, 1, 5, 32], dtype=tf.float32,
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x1_conv_b4 = tf.get_variable("x1_conv_b4", [5], initializer=tf.zeros_initializer())
+    x1_conv_b4 = tf.get_variable("x1_conv_b4", [5], initializer=tf.constant_initializer(0.1))
 
     x_w4 = tf.get_variable("x_w4", [1, 1, 32, 5], dtype=tf.float32,
                            initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_b4 = tf.get_variable("x_b4", [5], initializer=tf.zeros_initializer())
+    x_b4 = tf.get_variable("x_b4", [5], initializer=tf.constant_initializer(0.1))
 
     x_dew1 = tf.get_variable("x_dew1", [1, 1, 32, 5], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_deb1 = tf.get_variable("x_deb1", [32], initializer=tf.zeros_initializer())
+    x_deb1 = tf.get_variable("x_deb1", [32], initializer=tf.constant_initializer(0.1))
 
     x_dew2 = tf.get_variable("x_dew2", [1, 1, 128, 32], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_deb2 = tf.get_variable("x_deb2", [128], initializer=tf.zeros_initializer())
+    x_deb2 = tf.get_variable("x_deb2", [128], initializer=tf.constant_initializer(0.1))
 
     x_dew3 = tf.get_variable("x_dew3", [3, 3, 256, 128], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_deb3 = tf.get_variable("x_deb3", [256], initializer=tf.zeros_initializer())
+    x_deb3 = tf.get_variable("x_deb3", [256], initializer=tf.constant_initializer(0.1))
 
     x_dew4 = tf.get_variable("x_dew4", [5, 5, 224, 256], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_deb4 = tf.get_variable("x_deb4", [224], initializer=tf.zeros_initializer())
+    x_deb4 = tf.get_variable("x_deb4", [224], initializer=tf.constant_initializer(0.1))
 
     return {"x_w1": x_w1,
             "x_b1": x_b1,
@@ -209,6 +209,9 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
         # https://github.com/tensorflow/docs/blob/r1.14/site/en/api_docs/python/tf/train/Optimizer.md
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
         gradients, variables = zip(*optimizer.compute_gradients(cost))
+        for g, v in zip(gradients, variables):
+            tf.summary.histogram(v.name, v)
+            tf.summary.histogram(v.name + '_grad', g)
         gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
         optimize = optimizer.apply_gradients(zip(gradients, variables), global_step=global_step)
     return cost, optimize
@@ -257,6 +260,10 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
     init = tf.global_variables_initializer()
 
+    # https://stackoverflow.com/a/48928133/2049763 https://stackoverflow.com/a/49100101/2049763
+    merged = tf.summary.merge_all()
+    writer = tf.summary.FileWriter('train_log_layer', tf.get_default_graph())
+
     with tf.Session() as sess:
 
         sess.run(init)
@@ -271,7 +278,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
             for minibatch in minibatches:
                 # Select a minibatch
                 (batch_x1, batch_x2, batch_y) = minibatch
-                _, minibatch_cost, minibatch_acc = sess.run([optimizer, cost, accuracy],
+                _, minibatch_cost, minibatch_acc, summary = sess.run([optimizer, cost, accuracy, merged],
                                                             feed_dict={x_train_pure: batch_x1,
                                                                        x_train_mixed: x_mixed_set, y: batch_y,
                                                                        isTraining: True, keep_prob: 0.9})
@@ -282,6 +289,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
             epoch_acc_f = epoch_acc / (num_minibatches + 1)
 
             if print_cost is True and epoch % 5 == 0:
+                writer.add_summary(summary, global_step=epoch)
 
                 re, abund, epoch_cost_dev, epoch_acc_dev, lr = sess.run(
                     [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate],
