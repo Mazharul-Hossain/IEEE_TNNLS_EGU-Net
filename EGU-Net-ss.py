@@ -19,51 +19,51 @@ def create_placeholders(n_x1, n_x2, n_y):
 
 
 def initialize_parameters():
-    tf.set_random_seed(1)
+    # tf.set_random_seed(1)
 
     x_w1 = tf.get_variable("x_w1", [1, 1, 224, 256], dtype=tf.float32,
-                           initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_b1 = tf.get_variable("x_b1", [256], initializer=tf.constant_initializer(0.1))
+                           initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x_b1 = tf.get_variable("x_b1", [256], initializer=tf.constant_initializer(0.5))
 
     x_w2 = tf.get_variable("x_w2", [1, 1, 256, 128], dtype=tf.float32,
-                           initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_b2 = tf.get_variable("x_b2", [128], initializer=tf.constant_initializer(0.1))
+                           initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x_b2 = tf.get_variable("x_b2", [128], initializer=tf.constant_initializer(0.5))
 
     x1_conv_w1 = tf.get_variable("x1_conv_w1", [5, 5, 224, 256], dtype=tf.float32,
-                                 initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x1_conv_b1 = tf.get_variable("x1_conv_b1", [256], initializer=tf.constant_initializer(0.1))
+                                 initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x1_conv_b1 = tf.get_variable("x1_conv_b1", [256], initializer=tf.constant_initializer(0.5))
 
     x1_conv_w2 = tf.get_variable("x1_conv_w2", [3, 3, 256, 128], dtype=tf.float32,
-                                 initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x1_conv_b2 = tf.get_variable("x1_conv_b2", [128], initializer=tf.constant_initializer(0.1))
+                                 initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x1_conv_b2 = tf.get_variable("x1_conv_b2", [128], initializer=tf.constant_initializer(0.5))
 
     x_w3 = tf.get_variable("x_w3", [1, 1, 128, 32], dtype=tf.float32,
-                           initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_b3 = tf.get_variable("x_b3", [32], initializer=tf.constant_initializer(0.1))
+                           initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x_b3 = tf.get_variable("x_b3", [32], initializer=tf.constant_initializer(0.5))
 
     x1_conv_w4 = tf.get_variable("x1_conv_w4", [1, 1, 5, 32], dtype=tf.float32,
-                                 initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x1_conv_b4 = tf.get_variable("x1_conv_b4", [5], initializer=tf.constant_initializer(0.1))
+                                 initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x1_conv_b4 = tf.get_variable("x1_conv_b4", [5], initializer=tf.constant_initializer(0.5))
 
     x_w4 = tf.get_variable("x_w4", [1, 1, 32, 5], dtype=tf.float32,
-                           initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_b4 = tf.get_variable("x_b4", [5], initializer=tf.constant_initializer(0.1))
+                           initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x_b4 = tf.get_variable("x_b4", [5], initializer=tf.constant_initializer(0.5))
 
     x_dew1 = tf.get_variable("x_dew1", [1, 1, 32, 5], dtype=tf.float32,
-                             initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_deb1 = tf.get_variable("x_deb1", [32], initializer=tf.constant_initializer(0.1))
+                             initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x_deb1 = tf.get_variable("x_deb1", [32], initializer=tf.constant_initializer(0.5))
 
     x_dew2 = tf.get_variable("x_dew2", [1, 1, 128, 32], dtype=tf.float32,
-                             initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_deb2 = tf.get_variable("x_deb2", [128], initializer=tf.constant_initializer(0.1))
+                             initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x_deb2 = tf.get_variable("x_deb2", [128], initializer=tf.constant_initializer(0.5))
 
     x_dew3 = tf.get_variable("x_dew3", [3, 3, 256, 128], dtype=tf.float32,
-                             initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_deb3 = tf.get_variable("x_deb3", [256], initializer=tf.constant_initializer(0.1))
+                             initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x_deb3 = tf.get_variable("x_deb3", [256], initializer=tf.constant_initializer(0.5))
 
     x_dew4 = tf.get_variable("x_dew4", [5, 5, 224, 256], dtype=tf.float32,
-                             initializer=tf.contrib.layers.xavier_initializer_conv2d(seed=1))
-    x_deb4 = tf.get_variable("x_deb4", [224], initializer=tf.constant_initializer(0.1))
+                             initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x_deb4 = tf.get_variable("x_deb4", [224], initializer=tf.constant_initializer(0.5))
 
     return {"x_w1": x_w1,
             "x_b1": x_b1,
@@ -209,7 +209,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
     with tf.control_dependencies(update_ops):
         # https://github.com/tensorflow/docs/blob/r1.14/site/en/api_docs/python/tf/train/Optimizer.md
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-        gradients, variables = zip(*optimizer.compute_gradients(cost))
+        gradients, variables = zip(*optimizer.compute_gradients(cost, [v for v in tf.trainable_variables()]))
         for g, v in zip(gradients, variables):
             tf.summary.histogram(v.name, v)
             tf.summary.histogram(v.name + '_grad', g)
@@ -219,7 +219,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
 
 
 def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, learning_rate_base=0.01, beta_reg=0.005,
-                    num_epochs=500, minibatch_size=8000, print_cost=True):
+                    num_epochs=100, minibatch_size=8000, print_cost=True):
     ops.reset_default_graph()
     tf.set_random_seed(1)
     seed = 1
