@@ -198,7 +198,8 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
     r3 = tf.reshape(r2, [r1_shape[0], r1_shape[1], r1_shape[2]])
 
     with tf.name_scope("cost"):
-        cost = 1 * tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_est, labels=y_re)) + reg * l2_loss + 1 * tf.reduce_mean(tf.abs(r3 - r1))
+        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_est, labels=y_re)) + reg * l2_loss + \
+            tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=r1, labels=r3))
 
     with tf.name_scope("optimization"):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -248,6 +249,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     with tf.name_scope("metrics"):
 
         accuracy = tf.losses.absolute_difference(labels=y, predictions=abundances_pure)
+        reco_error = tf.losses.absolute_difference(labels=x_train_mixed, predictions=x_mixed_de_layer)
 
     init = tf.global_variables_initializer()
 
@@ -277,11 +279,11 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
             if print_cost is True and epoch % 5 == 0:
 
-                re, abund, epoch_cost_dev, epoch_acc_dev, lr = sess.run(
-                    [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate],
+                re, abund, epoch_cost_dev, epoch_acc_dev, epoch_err_dev, lr = sess.run(
+                    [x_mixed_de_layer, abundances_pure, cost, accuracy, reco_error, learning_rate],
                     feed_dict={x_train_pure: x_mixed_set1,
                                x_train_mixed: x_mixed_set, y: y_test,
-                               isTraining: True, keep_prob: 1})
+                               isTraining: False, keep_prob: 1})
 
                 costs.append(epoch_cost_f)
                 train_acc.append(epoch_acc_f)
@@ -291,8 +293,8 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
                 plot_lr.append(lr)
 
                 if epoch % 20 == 0:
-                    print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
-                        epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
+                    print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f, val_err: %f" % (
+                        epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev, epoch_err_dev))
 
         _, axes = plt.subplots(nrows=1, ncols=3, figsize = (15, 5) )
         
