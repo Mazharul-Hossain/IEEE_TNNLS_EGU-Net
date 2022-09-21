@@ -211,7 +211,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
 
 
 def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, learning_rate_base=0.01, beta_reg=0.005,
-                    num_epochs=2000, minibatch_size=8000, print_cost=True):
+                    num_epochs=1000, minibatch_size=8000, print_cost=True):
     ops.reset_default_graph()
     tf.set_random_seed(1)
     seed = 1
