@@ -211,7 +211,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
         gradients, variables = zip(*optimizer.compute_gradients(cost))
         for g, v in zip(gradients, variables):
-            if "_w" in v.name or "_dew" in v.name:
+            if "_w" not in v.name and "_dew" not in v.name:
                 continue
             tf.summary.histogram(v.name, v)
             tf.summary.histogram(v.name + '_grad', g)
