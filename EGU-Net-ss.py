@@ -191,7 +191,7 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
 
 
 def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, global_step):
-    r1 = r1.squeeze()
+    r1 = tf.squeeze(r1)
     r3 = tf.reshape(r2, [200, 200, 224])
 
     with tf.name_scope("cost"):
