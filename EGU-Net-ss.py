@@ -296,8 +296,8 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
                 plot_lr.append(lr)
 
                 if epoch % 20 == 0:
-                    print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f, val_err: %f" % (
-                        epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev, epoch_err_dev))
+                    print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
+                        epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
 
         _, axes = plt.subplots(nrows=1, ncols=3, figsize = (15, 5) )
         
