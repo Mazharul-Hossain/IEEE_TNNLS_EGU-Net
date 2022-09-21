@@ -240,7 +240,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
     parameters = initialize_parameters()
     for k, v in parameters.items():
-        k = "Weights/" if "_w" in k or "_dew" in k  else "Biases/"
+        k = f"weights/{k}" if "_w" in k or "_dew" in k  else f"biases/{k}"
         tf.summary.histogram(k, v)
 
     with tf.name_scope("network"):
