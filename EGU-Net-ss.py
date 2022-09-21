@@ -250,9 +250,9 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
         accuracy = tf.losses.absolute_difference(labels=y, predictions=abundances_pure)
         
-        r1_shape = x_mixed_de_layer.get_shape().as_list()
-        r3 = tf.reshape(x_train_mixed, [r1_shape[0], r1_shape[1], r1_shape[2]])
-        reco_error = tf.losses.absolute_difference(labels=r3, predictions=x_mixed_de_layer)
+        # r1_shape = x_mixed_de_layer.get_shape().as_list()
+        # r3 = tf.reshape(x_train_mixed, [r1_shape[0], r1_shape[1], r1_shape[2]])
+        # reco_error = tf.losses.absolute_difference(labels=r3, predictions=x_mixed_de_layer)
 
     init = tf.global_variables_initializer()
 
@@ -282,11 +282,11 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
             if print_cost is True and epoch % 5 == 0:
 
-                re, abund, epoch_cost_dev, epoch_acc_dev, epoch_err_dev, lr = sess.run(
-                    [x_mixed_de_layer, abundances_pure, cost, accuracy, reco_error, learning_rate],
+                re, abund, epoch_cost_dev, epoch_acc_dev, lr = sess.run(
+                    [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate],
                     feed_dict={x_train_pure: x_mixed_set1,
                                x_train_mixed: x_mixed_set, y: y_test,
-                               isTraining: False, keep_prob: 1})
+                               isTraining: True, keep_prob: 1})
 
                 costs.append(epoch_cost_f)
                 train_acc.append(epoch_acc_f)
