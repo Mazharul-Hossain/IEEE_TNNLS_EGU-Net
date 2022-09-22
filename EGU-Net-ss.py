@@ -148,30 +148,35 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
                                                        abundances_pure_shape[3]])
 
         x_mixed_z4 = tf.nn.conv2d_transpose(x_mixed_a3, parameters['x1_conv_w4'],
-                                            output_shape=tf.stack([1, 50, 50, 5]), strides=[1, 2, 2, 1],
+                                            output_shape=tf.stack([1, 200, 200, 5]), strides=[1, 8, 8, 1],
                                             padding='SAME') + parameters['x1_conv_b4']
         abundances_mixed = tf.nn.softmax(x_mixed_z4)
 
+        x_mixed_a_z4 = tf.nn.conv2d_transpose(x_mixed_a3, parameters['x1_conv_w4'],
+                                            output_shape=tf.stack([1, 50, 50, 5]), strides=[1, 2, 2, 1],
+                                            padding='SAME') + parameters['x1_conv_b4']
+        x_mixed_a4 = tf.nn.softmax(x_mixed_a_z4)
+
     with tf.name_scope("x_de_layer_1"):
-        x_mixed_de_z1 = tf.nn.conv2d_transpose(abundances_mixed, parameters['x_dew1'],
+        x_mixed_de_z1 = tf.nn.conv2d_transpose(x_mixed_a4, parameters['x_dew1'],
                                                output_shape=tf.stack([1, 100, 100, 32]), strides=[1, 2, 2, 1],
                                                padding='SAME') + parameters['x_deb1']
         x_mixed_de_z1_bn = tf.layers.batch_normalization(x_mixed_de_z1, axis=3, momentum=momentum, training=isTraining)
-        x_mixed_de_a1 = tf.nn.sigmoid(x_mixed_de_z1_bn)
+        x_mixed_de_a1 = tf.nn.leaky_relu(x_mixed_de_z1_bn)
 
     with tf.name_scope("x_de_layer_2"):
         x_mixed_de_z2 = tf.nn.conv2d_transpose(x_mixed_de_a1, parameters['x_dew2'],
                                                output_shape=tf.stack([1, 200, 200, 128]), strides=[1, 2, 2, 1],
                                                padding='SAME') + parameters['x_deb2']
         x_mixed_de_z2_bn = tf.layers.batch_normalization(x_mixed_de_z2, axis=3, momentum=momentum, training=isTraining)
-        x_mixed_de_a2 = tf.nn.sigmoid(x_mixed_de_z2_bn)
+        x_mixed_de_a2 = tf.nn.leaky_relu(x_mixed_de_z2_bn)
 
     with tf.name_scope("x_de_layer_3"):
         x_mixed_de_z3 = tf.nn.conv2d_transpose(x_mixed_de_a2, parameters['x_dew3'],
                                                output_shape=tf.stack([1, 200, 200, 256]), strides=[1, 1, 1, 1],
                                                padding='SAME') + parameters['x_deb3']
         x_mixed_de_z3_bn = tf.layers.batch_normalization(x_mixed_de_z3, axis=3, momentum=momentum, training=isTraining)
-        x_mixed_de_a3 = tf.nn.sigmoid(x_mixed_de_z3_bn)
+        x_mixed_de_a3 = tf.nn.leaky_relu(x_mixed_de_z3_bn)
 
     with tf.name_scope("x_de_layer_4"):
         x_mixed_de_z4 = tf.nn.conv2d_transpose(x_mixed_de_a3, parameters['x_dew4'],
@@ -209,7 +214,8 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
         # https://github.com/tensorflow/docs/blob/r1.14/site/en/api_docs/python/tf/train/Optimizer.md
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
         gradients, variables = zip(*optimizer.compute_gradients(cost))
-        gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
+        # gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
+        gradients = [None if gradient is None else tf.clip_by_norm(gradient, 0.001) for gradient in gradients]
         for g, v in zip(gradients, variables):
             # if "_w" not in v.name and "_dew" not in v.name:
             #     continue
