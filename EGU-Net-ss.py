@@ -220,6 +220,8 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
             # if "_w" not in v.name and "_dew" not in v.name:
             #     continue
             # tf.summary.histogram(v.name, v)
+            if g is None:
+                continue
             tf.summary.histogram(v.name + '_grad', g)
         optimize = optimizer.apply_gradients(zip(gradients, variables), global_step=global_step)
     return cost, optimize
