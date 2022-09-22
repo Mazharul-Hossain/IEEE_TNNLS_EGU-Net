@@ -215,7 +215,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
         gradients, variables = zip(*optimizer.compute_gradients(cost))
         # gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
-        gradients = [None if gradient is None else tf.clip_by_norm(gradient, 0.001) for gradient in gradients]
+        gradients = [tf.clip_by_norm(gradient, 0.001) for gradient in gradients]
         for g, v in zip(gradients, variables):
             # if "_w" not in v.name and "_dew" not in v.name:
             #     continue
