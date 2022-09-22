@@ -203,15 +203,15 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
     r3 = tf.reshape(r2, [r1_shape[0], r1_shape[1], r1_shape[2]])
 
     with tf.name_scope("cost"):
-        # cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_est, labels=y_re)) + \
-        #     reg * l2_loss + \
-        cost = tf.reduce_mean(tf.abs(r1 - r3))
+        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_est, labels=y_re)) + \
+            reg * l2_loss + tf.reduce_mean(tf.abs(r1 - r3))
 
     with tf.name_scope("optimization"):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
     with tf.control_dependencies(update_ops):
         # https://github.com/tensorflow/docs/blob/r1.14/site/en/api_docs/python/tf/train/Optimizer.md
+        # https://stackoverflow.com/a/36501922/2049763
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
         gradients, variables = zip(*optimizer.compute_gradients(cost))
         gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
@@ -274,8 +274,19 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     init = tf.global_variables_initializer()
 
     # https://stackoverflow.com/a/48928133/2049763 https://stackoverflow.com/a/49100101/2049763
-    merged = tf.summary.merge_all() 
-    writer = tf.summary.FileWriter('train_log_layer', tf.get_default_graph())
+    tf.summary.scalar('learning rate', data=learning_rate, step=epoch)
+    merged = tf.summary.merge_all()
+    writer = tf.summary.FileWriter('logs/train_log_layer', tf.get_default_graph())
+
+    train_summary = tf.Summary()
+    train_summary.add.scalar('Absolute Error', data=accuracy, step=epoch)
+    train_summary.add.scalar('Loss', data=cost, step=epoch)
+    train_writer = tf.summary.FileWriter('logs/train')
+
+    val_summary = tf.Summary()
+    train_summary.add.scalar('Absolute Error', data=accuracy, step=epoch)
+    train_summary.add.scalar('Loss', data=cost, step=epoch)
+    val_writer = tf.summary.FileWriter('logs/val')
 
     with tf.Session() as sess:
 
@@ -291,7 +302,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
             for minibatch in minibatches:
                 # Select a minibatch
                 (batch_x1, batch_x2, batch_y) = minibatch
-                _, minibatch_cost, minibatch_acc, summary = sess.run([optimizer, cost, accuracy, merged],
+                _, minibatch_cost, minibatch_acc, summary, t_summary = sess.run([optimizer, cost, accuracy, merged, train_summary],
                                                             feed_dict={x_train_pure: batch_x1,
                                                                        x_train_mixed: x_mixed_set, y: batch_y,
                                                                        isTraining: True, keep_prob: 0.9})
@@ -300,12 +311,13 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
             epoch_cost_f = epoch_cost / (num_minibatches + 1)
             epoch_acc_f = epoch_acc / (num_minibatches + 1)
+            
+            writer.add_summary(summary, global_step=epoch)
+            train_writer.add_summary(t_summary, global_step=epoch)
 
             if print_cost is True and epoch % 5 == 0:
-                writer.add_summary(summary, global_step=epoch)
-
-                re, abund, epoch_cost_dev, epoch_acc_dev, lr = sess.run(
-                    [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate],
+                re, abund, epoch_cost_dev, epoch_acc_dev, lr, v_summary = sess.run(
+                    [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate, val_summary],
                     feed_dict={x_train_pure: x_mixed_set1,
                                x_train_mixed: x_mixed_set, y: y_test,
                                isTraining: True, keep_prob: 1})
@@ -316,6 +328,8 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
                 val_acc.append(epoch_acc_dev)
                 plot_epoch.append(epoch)
                 plot_lr.append(lr)
+                
+                val_writer.add_summary(v_summary, global_step=epoch)
 
                 if epoch % 20 == 0:
                     print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
