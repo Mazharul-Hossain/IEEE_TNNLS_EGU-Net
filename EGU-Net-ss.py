@@ -1,6 +1,4 @@
 # import library
-import os
-import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -211,12 +209,12 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
         # https://github.com/tensorflow/docs/blob/r1.14/site/en/api_docs/python/tf/train/Optimizer.md
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
         gradients, variables = zip(*optimizer.compute_gradients(cost))
+        gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
         for g, v in zip(gradients, variables):
             # if "_w" not in v.name and "_dew" not in v.name:
             #     continue
             # tf.summary.histogram(v.name, v)
             tf.summary.histogram(v.name + '_grad', g)
-        gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
         optimize = optimizer.apply_gradients(zip(gradients, variables), global_step=global_step)
     return cost, optimize
 
@@ -268,9 +266,8 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     init = tf.global_variables_initializer()
 
     # https://stackoverflow.com/a/48928133/2049763 https://stackoverflow.com/a/49100101/2049763
-    merged = tf.summary.merge_all()
-    os.makedirs('./train_log_layer', exist_ok=True) 
-    writer = tf.summary.FileWriter('./train_log_layer', tf.get_default_graph())
+    merged = tf.summary.merge_all() 
+    writer = tf.summary.FileWriter('train_log_layer', tf.get_default_graph())
 
     with tf.Session() as sess:
 
