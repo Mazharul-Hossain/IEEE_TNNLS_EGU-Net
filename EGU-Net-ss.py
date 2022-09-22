@@ -1,4 +1,5 @@
 # import library
+import os
 import shutil
 import numpy as np
 import matplotlib.pyplot as plt
@@ -268,12 +269,8 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
     # https://stackoverflow.com/a/48928133/2049763 https://stackoverflow.com/a/49100101/2049763
     merged = tf.summary.merge_all()
-    try:
-        shutil.rmtree('train_log_layer')
-    except Exception as ex:
-        print(ex)
-
-    writer = tf.summary.FileWriter('train_log_layer', tf.get_default_graph())
+    os.makedirs('./train_log_layer', exist_ok=True) 
+    writer = tf.summary.FileWriter('./train_log_layer', tf.get_default_graph())
 
     with tf.Session() as sess:
 
