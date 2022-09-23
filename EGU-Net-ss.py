@@ -278,14 +278,14 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     merged = tf.summary.merge_all()
     writer = tf.summary.FileWriter('logs/train_log_layer', tf.get_default_graph())
 
-    train_summary = tf.Summary()
-    train_summary.add.scalar('Absolute Error', accuracy)
-    train_summary.add.scalar('Loss', cost)
+    train_summary = tf.Summary.merge(
+        [tf.summary.scalar('Absolute Error', accuracy),
+         tf.summary.add.scalar('Loss', cost)])
     train_writer = tf.summary.FileWriter('logs/train')
 
-    val_summary = tf.Summary()
-    train_summary.add.scalar('Absolute Error', accuracy)
-    train_summary.add.scalar('Loss', cost)
+    val_summary = tf.summary.merge(
+        [tf.summary.scalar('Absolute Error', accuracy), 
+         tf.summary.scalar('Loss', cost)])
     val_writer = tf.summary.FileWriter('logs/val')
 
     with tf.Session() as sess:
