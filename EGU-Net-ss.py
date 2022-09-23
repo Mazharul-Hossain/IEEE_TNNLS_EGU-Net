@@ -290,7 +290,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     val_writer = tf.summary.FileWriter('logs/valid')
 
     with tf.Session() as old_sess:
-        with tf_debug.TensorBoardDebugWrapsperSession(old_sess, 8080) as sess:
+        with tf_debug.TensorBoardDebugWrapperSession(old_sess, 8080) as sess:
             
             sess.run(init)
 
