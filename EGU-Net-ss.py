@@ -280,7 +280,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
     train_summary = tf.summary.merge(
         [tf.summary.scalar('Absolute Error', accuracy),
-         tf.summary.add.scalar('Loss', cost)])
+         tf.summary.scalar('Loss', cost)])
     train_writer = tf.summary.FileWriter('logs/train')
 
     val_summary = tf.summary.merge(
