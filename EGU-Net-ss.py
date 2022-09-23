@@ -8,6 +8,7 @@ from tf_utils import random_mini_batches
 from tensorflow.python.framework import ops
 from tensorflow.python import debug as tf_debug
 
+# https://www.freecodecamp.org/news/debugging-tensorflow-a-starter-e6668ce72617/
 # Only log errors (to prevent unnecessary cluttering of the console)
 tf.logging.set_verbosity(tf.logging.ERROR)
 
@@ -44,9 +45,9 @@ def initialize_parameters():
                            initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_b3 = tf.get_variable("x_b3", [32], initializer=tf.constant_initializer(0.5))
 
-    x1_conv_w3 = tf.get_variable("x1_conv_w2", [3, 3, 128, 32], dtype=tf.float32,
+    x1_conv_w3 = tf.get_variable("x1_conv_w3", [3, 3, 128, 32], dtype=tf.float32,
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d())
-    x1_conv_b3 = tf.get_variable("x1_conv_b2", [32], initializer=tf.constant_initializer(0.5))
+    x1_conv_b3 = tf.get_variable("x1_conv_b3", [32], initializer=tf.constant_initializer(0.5))
 
     x_w4 = tf.get_variable("x_w4", [1, 1, 32, 5], dtype=tf.float32,
                            initializer=tf.contrib.layers.xavier_initializer_conv2d())
@@ -296,7 +297,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     val_writer = tf.summary.FileWriter('logs/valid')
 
     with tf.Session() as old_sess:
-        with tf_debug.TensorBoardDebugWrapperSession(old_sess, 8080) as sess:
+        with tf_debug.TensorBoardDebugWrapperSession(old_sess, "lynx:8080") as sess:
             
             sess.run(init)
 
