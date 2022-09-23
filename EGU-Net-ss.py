@@ -28,13 +28,13 @@ def initialize_parameters():
                            initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_b1 = tf.get_variable("x_b1", [256], initializer=tf.constant_initializer(0.5))
 
-    x_w2 = tf.get_variable("x_w2", [1, 1, 256, 128], dtype=tf.float32,
-                           initializer=tf.contrib.layers.xavier_initializer_conv2d())
-    x_b2 = tf.get_variable("x_b2", [128], initializer=tf.constant_initializer(0.5))
-
     x1_conv_w1 = tf.get_variable("x1_conv_w1", [5, 5, 224, 256], dtype=tf.float32,
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x1_conv_b1 = tf.get_variable("x1_conv_b1", [256], initializer=tf.constant_initializer(0.5))
+
+    x_w2 = tf.get_variable("x_w2", [1, 1, 256, 128], dtype=tf.float32,
+                           initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x_b2 = tf.get_variable("x_b2", [128], initializer=tf.constant_initializer(0.5))
 
     x1_conv_w2 = tf.get_variable("x1_conv_w2", [3, 3, 256, 128], dtype=tf.float32,
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d())
@@ -44,13 +44,17 @@ def initialize_parameters():
                            initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_b3 = tf.get_variable("x_b3", [32], initializer=tf.constant_initializer(0.5))
 
-    x1_conv_w4 = tf.get_variable("x1_conv_w4", [1, 1, 5, 32], dtype=tf.float32,
+    x1_conv_w3 = tf.get_variable("x1_conv_w2", [3, 3, 128, 32], dtype=tf.float32,
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d())
-    x1_conv_b4 = tf.get_variable("x1_conv_b4", [5], initializer=tf.constant_initializer(0.5))
+    x1_conv_b3 = tf.get_variable("x1_conv_b2", [32], initializer=tf.constant_initializer(0.5))
 
     x_w4 = tf.get_variable("x_w4", [1, 1, 32, 5], dtype=tf.float32,
                            initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_b4 = tf.get_variable("x_b4", [5], initializer=tf.constant_initializer(0.5))
+
+    x1_conv_w4 = tf.get_variable("x1_conv_w4", [1, 1, 5, 32], dtype=tf.float32,
+                                 initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    x1_conv_b4 = tf.get_variable("x1_conv_b4", [5], initializer=tf.constant_initializer(0.5))
 
     x_dew1 = tf.get_variable("x_dew1", [1, 1, 32, 5], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
@@ -76,6 +80,8 @@ def initialize_parameters():
             "x1_conv_b1": x1_conv_b1,
             "x1_conv_w2": x1_conv_w2,
             "x1_conv_b2": x1_conv_b2,
+            "x1_conv_w3": x1_conv_w3,
+            "x1_conv_b3": x1_conv_b3,
             "x_w3": x_w3,
             "x_b3": x_b3,
             "x_w4": x_w4,
@@ -203,7 +209,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
     r1 = tf.squeeze(r1)
     # r3 = tf.reshape(r2, [200, 200, 224])
     r1_shape = r1.get_shape().as_list()
-    print(r1_shape, r2.get_shape().as_list())
+    # print(r1_shape, r2.get_shape().as_list())
     r3 = tf.reshape(r2, [r1_shape[0], r1_shape[1], r1_shape[2]])
 
     with tf.name_scope("cost"):
@@ -367,19 +373,23 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
         print("Parameters have been trained!")
         return parameters, val_acc, re.squeeze(), abund
 
+def main():
+    Pure_TrSet = scio.loadmat('Data/Pure_TrSet.mat')
+    Mixed_TrSet = scio.loadmat('Data/Mixed_TrSet.mat')
 
-Pure_TrSet = scio.loadmat('Data/Pure_TrSet.mat')
-Mixed_TrSet = scio.loadmat('Data/Mixed_TrSet.mat')
+    TrLabel = scio.loadmat('Data/TrLabel.mat')
+    TeLabel = scio.loadmat('Data/TeLabel.mat')
 
-TrLabel = scio.loadmat('Data/TrLabel.mat')
-TeLabel = scio.loadmat('Data/TeLabel.mat')
+    Pure_TrSet = Pure_TrSet['Pure_TrSet']
+    Mixed_TrSet = Mixed_TrSet['Mixed_TrSet']
+    TrLabel = TrLabel['TrLabel']
+    TeLabel = TeLabel['TeLabel']
+    # print(f"Pure_TrSet: {Pure_TrSet.shape} Mixed_TrSet: {Mixed_TrSet.shape} TrLabel: {TrLabel.shape} TeLabel: {TeLabel.shape}")
+    # Pure_TrSet: (8000, 224) Mixed_TrSet: (40000, 224) TrLabel: (8000, 5) TeLabel: (40000, 5)
 
-Pure_TrSet = Pure_TrSet['Pure_TrSet']
-Mixed_TrSet = Mixed_TrSet['Mixed_TrSet']
-TrLabel = TrLabel['TrLabel']
-TeLabel = TeLabel['TeLabel']
-print(f"Pure_TrSet: {Pure_TrSet.shape} Mixed_TrSet: {Mixed_TrSet.shape} TrLabel: {TrLabel.shape} TeLabel: {TeLabel.shape}")
+    parameters, val_acc, high_res, abund = train_my_network(Pure_TrSet, Mixed_TrSet, Mixed_TrSet, TrLabel, TeLabel)
+    sio.savemat('abund.mat', {'abund': abund})
+    sio.savemat('hi_res.mat', {'hi_res': high_res})
 
-parameters, val_acc, high_res, abund = train_my_network(Pure_TrSet, Mixed_TrSet, Mixed_TrSet, TrLabel, TeLabel)
-sio.savemat('abund.mat', {'abund': abund})
-sio.savemat('hi_res.mat', {'hi_res': high_res})
+if __name__ == "__main__":
+    main()
