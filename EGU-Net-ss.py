@@ -4,8 +4,12 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import scipy.io as scio
 import scipy.io as sio
-from tf_utils import random_mini_batches, convert_to_one_hot
+from tf_utils import random_mini_batches
 from tensorflow.python.framework import ops
+from tensorflow.python import debug as tf_debug
+
+# Only log errors (to prevent unnecessary cluttering of the console)
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 
 def create_placeholders(n_x1, n_x2, n_y):
@@ -278,62 +282,60 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     merged = tf.summary.merge_all()
     writer = tf.summary.FileWriter('logs/train_log_layer', tf.get_default_graph())
 
-    train_summary = tf.summary.merge(
+    # https://stackoverflow.com/a/47098910/2049763
+    common_summary = tf.summary.merge(
         [tf.summary.scalar('Absolute Error', accuracy),
          tf.summary.scalar('Loss', cost)])
     train_writer = tf.summary.FileWriter('logs/train')
+    val_writer = tf.summary.FileWriter('logs/valid')
 
-    val_summary = tf.summary.merge(
-        [tf.summary.scalar('Absolute Error', accuracy), 
-         tf.summary.scalar('Loss', cost)])
-    val_writer = tf.summary.FileWriter('logs/val')
-
-    with tf.Session() as sess:
-
-        sess.run(init)
-
-        # Do the training loop
-        for epoch in range(1, num_epochs + 1):
-            epoch_cost = 0.  # Defines a cost related to an epoch
-            epoch_acc = 0.
-            num_minibatches = int(m1 / minibatch_size)  # number of minibatches of size minibatch_size in the train set
-            seed = seed + 1
-            minibatches = random_mini_batches(x_pure_set, x_mixed_set, y_train, minibatch_size, seed)
-            for minibatch in minibatches:
-                # Select a minibatch
-                (batch_x1, batch_x2, batch_y) = minibatch
-                _, minibatch_cost, minibatch_acc, summary, t_summary = sess.run([optimizer, cost, accuracy, merged, train_summary],
-                                                            feed_dict={x_train_pure: batch_x1,
-                                                                       x_train_mixed: x_mixed_set, y: batch_y,
-                                                                       isTraining: True, keep_prob: 0.9})
-                epoch_cost += minibatch_cost
-                epoch_acc += minibatch_acc
-
-            epoch_cost_f = epoch_cost / (num_minibatches + 1)
-            epoch_acc_f = epoch_acc / (num_minibatches + 1)
+    with tf.Session() as old_sess:
+        with tf_debug.TensorBoardDebugWrapsperSession(old_sess, 8080) as sess:
             
-            writer.add_summary(summary, global_step=epoch)
-            train_writer.add_summary(t_summary, global_step=epoch)
+            sess.run(init)
 
-            if print_cost is True and epoch % 5 == 0:
-                re, abund, epoch_cost_dev, epoch_acc_dev, lr, v_summary = sess.run(
-                    [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate, val_summary],
-                    feed_dict={x_train_pure: x_mixed_set1,
-                               x_train_mixed: x_mixed_set, y: y_test,
-                               isTraining: True, keep_prob: 1})
+            # Do the training loop
+            for epoch in range(1, num_epochs + 1):
+                epoch_cost = 0.  # Defines a cost related to an epoch
+                epoch_acc = 0.
+                num_minibatches = int(m1 / minibatch_size)  # number of minibatches of size minibatch_size in the train set
+                seed = seed + 1
+                minibatches = random_mini_batches(x_pure_set, x_mixed_set, y_train, minibatch_size, seed)
+                for minibatch in minibatches:
+                    # Select a minibatch
+                    (batch_x1, batch_x2, batch_y) = minibatch
+                    _, minibatch_cost, minibatch_acc, summary, t_summary = sess.run([optimizer, cost, accuracy, merged, common_summary],
+                                                                feed_dict={x_train_pure: batch_x1,
+                                                                        x_train_mixed: x_mixed_set, y: batch_y,
+                                                                        isTraining: True, keep_prob: 0.9})
+                    epoch_cost += minibatch_cost
+                    epoch_acc += minibatch_acc
 
-                costs.append(epoch_cost_f)
-                train_acc.append(epoch_acc_f)
-                costs_dev.append(epoch_cost_dev)
-                val_acc.append(epoch_acc_dev)
-                plot_epoch.append(epoch)
-                plot_lr.append(lr)
+                epoch_cost_f = epoch_cost / (num_minibatches + 1)
+                epoch_acc_f = epoch_acc / (num_minibatches + 1)
                 
-                val_writer.add_summary(v_summary, global_step=epoch)
+                writer.add_summary(summary, global_step=epoch)
+                train_writer.add_summary(t_summary, global_step=epoch)
 
-                if epoch % 20 == 0:
-                    print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
-                        epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
+                if print_cost is True and epoch % 5 == 0:
+                    re, abund, epoch_cost_dev, epoch_acc_dev, lr, v_summary = sess.run(
+                        [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate, common_summary],
+                        feed_dict={x_train_pure: x_mixed_set1,
+                                x_train_mixed: x_mixed_set, y: y_test,
+                                isTraining: True, keep_prob: 1})
+
+                    costs.append(epoch_cost_f)
+                    train_acc.append(epoch_acc_f)
+                    costs_dev.append(epoch_cost_dev)
+                    val_acc.append(epoch_acc_dev)
+                    plot_epoch.append(epoch)
+                    plot_lr.append(lr)
+                    
+                    val_writer.add_summary(v_summary, global_step=epoch)
+
+                    if epoch % 20 == 0:
+                        print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
+                            epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
 
         _, axes = plt.subplots(nrows=1, ncols=3, figsize = (15, 5) )
         
@@ -376,10 +378,8 @@ Pure_TrSet = Pure_TrSet['Pure_TrSet']
 Mixed_TrSet = Mixed_TrSet['Mixed_TrSet']
 TrLabel = TrLabel['TrLabel']
 TeLabel = TeLabel['TeLabel']
+print(f"Pure_TrSet: {Pure_TrSet.shape} Mixed_TrSet: {Mixed_TrSet.shape} TrLabel: {TrLabel.shape} TeLabel: {TeLabel.shape}")
 
-Y_train = TrLabel
-Y_test = TeLabel
-
-parameters, val_acc, high_res, abund = train_my_network(Pure_TrSet, Mixed_TrSet, Mixed_TrSet, Y_train, Y_test)
+parameters, val_acc, high_res, abund = train_my_network(Pure_TrSet, Mixed_TrSet, Mixed_TrSet, TrLabel, TeLabel)
 sio.savemat('abund.mat', {'abund': abund})
 sio.savemat('hi_res.mat', {'hi_res': high_res})
