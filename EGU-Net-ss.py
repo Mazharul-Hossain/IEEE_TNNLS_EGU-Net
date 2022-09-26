@@ -65,11 +65,11 @@ def initialize_parameters():
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb2 = tf.get_variable("x_deb2", [128], initializer=tf.constant_initializer(0.5))
 
-    x_dew3 = tf.get_variable("x_dew3", [3, 3, 256, 128], dtype=tf.float32,
+    x_dew3 = tf.get_variable("x_dew3", [3, 3, 128, 256], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb3 = tf.get_variable("x_deb3", [256], initializer=tf.constant_initializer(0.5))
 
-    x_dew4 = tf.get_variable("x_dew4", [5, 5, 224, 256], dtype=tf.float32,
+    x_dew4 = tf.get_variable("x_dew4", [5, 5, 256, 224], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb4 = tf.get_variable("x_deb4", [224], initializer=tf.constant_initializer(0.5))
 
@@ -183,16 +183,16 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
         x_mixed_de_a2 = tf.nn.leaky_relu(x_mixed_de_z2_bn)
 
     with tf.name_scope("x_de_layer_3"):
-        x_mixed_de_z3 = tf.nn.conv2d_transpose(x_mixed_de_a2, parameters['x_dew3'],
-                                               output_shape=tf.stack([1, 200, 200, 256]), strides=[1, 1, 1, 1],
-                                               padding='SAME') + parameters['x_deb3']
+        x_mixed_de_z3 = tf.nn.conv2d(x_mixed_de_a2, parameters['x_dew3'],
+                                    strides=[1, 1, 1, 1],
+                                    padding='SAME') + parameters['x_deb3']
         x_mixed_de_z3_bn = tf.layers.batch_normalization(x_mixed_de_z3, axis=3, momentum=momentum, training=isTraining)
         x_mixed_de_a3 = tf.nn.leaky_relu(x_mixed_de_z3_bn)
 
     with tf.name_scope("x_de_layer_4"):
-        x_mixed_de_z4 = tf.nn.conv2d_transpose(x_mixed_de_a3, parameters['x_dew4'],
-                                               output_shape=tf.stack([1, 200, 200, 224]), strides=[1, 1, 1, 1],
-                                               padding='SAME') + parameters['x_deb4']
+        x_mixed_de_z4 = tf.nn.conv2d(x_mixed_de_a3, parameters['x_dew4'],
+                                    strides=[1, 1, 1, 1],
+                                    padding='SAME') + parameters['x_deb4']
         x_mixed_de_z4_bn = tf.layers.batch_normalization(x_mixed_de_z4, axis=3, momentum=momentum, training=isTraining)
         x_mixed_de_a4 = tf.nn.sigmoid(x_mixed_de_z4_bn)
 
@@ -225,7 +225,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
         # https://stackoverflow.com/a/36501922/2049763
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
         gradients, variables = zip(*optimizer.compute_gradients(cost))
-        gradients, _ = tf.clip_by_global_norm(gradients, 0.001)
+        gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
         # gradients = [tf.clip_by_norm(gradient, 0.001) for gradient in gradients]
         for g, v in zip(gradients, variables):
             # if "_w" not in v.name and "_dew" not in v.name:
@@ -296,53 +296,58 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     train_writer = tf.summary.FileWriter('logs/train')
     val_writer = tf.summary.FileWriter('logs/valid')
 
-    with tf.Session() as old_sess:
-        with tf_debug.TensorBoardDebugWrapperSession(old_sess, "lynx:8080") as sess:
+    with tf.Session() as sess:
+        # with tf_debug.TensorBoardDebugWrapperSession(old_sess, "lynx:8080") as sess:
             
-            sess.run(init)
+        sess.run(init)
 
-            # Do the training loop
-            for epoch in range(1, num_epochs + 1):
-                epoch_cost = 0.  # Defines a cost related to an epoch
-                epoch_acc = 0.
-                num_minibatches = int(m1 / minibatch_size)  # number of minibatches of size minibatch_size in the train set
-                seed = seed + 1
-                minibatches = random_mini_batches(x_pure_set, x_mixed_set, y_train, minibatch_size, seed)
-                for minibatch in minibatches:
-                    # Select a minibatch
-                    (batch_x1, batch_x2, batch_y) = minibatch
-                    _, minibatch_cost, minibatch_acc, summary, t_summary = sess.run([optimizer, cost, accuracy, merged, common_summary],
-                                                                feed_dict={x_train_pure: batch_x1,
-                                                                        x_train_mixed: x_mixed_set, y: batch_y,
-                                                                        isTraining: True, keep_prob: 0.9})
-                    epoch_cost += minibatch_cost
-                    epoch_acc += minibatch_acc
+        # Do the training loop
+        for epoch in range(1, num_epochs + 1):
+            epoch_cost = 0.  # Defines a cost related to an epoch
+            epoch_acc = 0.
+            num_minibatches = int(m1 / minibatch_size)  # number of minibatches of size minibatch_size in the train set
+            seed = seed + 1
+            minibatches = random_mini_batches(x_pure_set, x_mixed_set, y_train, minibatch_size, seed)
+            for minibatch in minibatches:
+                # Select a minibatch
+                (batch_x1, batch_x2, batch_y) = minibatch
+                _, minibatch_cost, minibatch_acc, summary, t_summary = sess.run([optimizer, cost, accuracy, merged, common_summary],
+                                                            feed_dict={x_train_pure: batch_x1,
+                                                                    x_train_mixed: x_mixed_set, y: batch_y,
+                                                                    isTraining: True, keep_prob: 0.9})
+                epoch_cost += minibatch_cost
+                epoch_acc += minibatch_acc
 
-                epoch_cost_f = epoch_cost / (num_minibatches + 1)
-                epoch_acc_f = epoch_acc / (num_minibatches + 1)
+            epoch_cost_f = epoch_cost / (num_minibatches + 1)
+            epoch_acc_f = epoch_acc / (num_minibatches + 1)
+            
+            writer.add_summary(summary, global_step=epoch)
+            train_writer.add_summary(t_summary, global_step=epoch)
+
+            if print_cost is True and epoch % 5 == 0:
+                re, abund, epoch_cost_dev, epoch_acc_dev, lr, v_summary = sess.run(
+                    [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate, common_summary],
+                    feed_dict={x_train_pure: x_mixed_set1,
+                            x_train_mixed: x_mixed_set, y: y_test,
+                            isTraining: True, keep_prob: 1})
+
+                costs.append(epoch_cost_f)
+                train_acc.append(epoch_acc_f)
+                costs_dev.append(epoch_cost_dev)
+                val_acc.append(epoch_acc_dev)
+                plot_epoch.append(epoch)
+                plot_lr.append(lr)
                 
-                writer.add_summary(summary, global_step=epoch)
-                train_writer.add_summary(t_summary, global_step=epoch)
+                val_writer.add_summary(v_summary, global_step=epoch)
 
-                if print_cost is True and epoch % 5 == 0:
-                    re, abund, epoch_cost_dev, epoch_acc_dev, lr, v_summary = sess.run(
-                        [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate, common_summary],
-                        feed_dict={x_train_pure: x_mixed_set1,
-                                x_train_mixed: x_mixed_set, y: y_test,
-                                isTraining: True, keep_prob: 1})
-
-                    costs.append(epoch_cost_f)
-                    train_acc.append(epoch_acc_f)
-                    costs_dev.append(epoch_cost_dev)
-                    val_acc.append(epoch_acc_dev)
-                    plot_epoch.append(epoch)
-                    plot_lr.append(lr)
-                    
-                    val_writer.add_summary(v_summary, global_step=epoch)
-
-                    if epoch % 20 == 0:
-                        print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
-                            epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
+                if epoch % 20 == 0:
+                    print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
+                        epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
+        re, abund = sess.run([x_mixed_de_layer, abundances_pure],
+            feed_dict={
+                x_train_pure: x_mixed_set1,
+                x_train_mixed: x_mixed_set, y: y_test,
+                isTraining: False, keep_prob: 1})
 
         _, axes = plt.subplots(nrows=1, ncols=3, figsize = (15, 5) )
         
