@@ -158,20 +158,20 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
         abundances_mixed = tf.nn.softmax(x_mixed_z4)
 
         x_mixed_a_z4 = tf.nn.conv2d_transpose(x_mixed_a3, parameters['x1_conv_w4'],
-                                              output_shape=tf.stack([1, 50, 50, 5]), strides=[1, 2, 2, 1],
+                                              output_shape=tf.stack([1, 200, 200, 5]), strides=[1, 8, 8, 1],
                                               padding='SAME') + parameters['x1_conv_b4']
         x_mixed_a4 = tf.nn.softmax(x_mixed_a_z4)
 
     with tf.name_scope("x_de_layer_1"):
         x_mixed_de_z1 = tf.nn.conv2d_transpose(x_mixed_a4, parameters['x_dew1'],
-                                               output_shape=tf.stack([1, 100, 100, 32]), strides=[1, 2, 2, 1],
+                                               output_shape=tf.stack([1, 200, 200, 32]), strides=[1, 1, 1, 1],
                                                padding='SAME') + parameters['x_deb1']
         x_mixed_de_z1_bn = tf.layers.batch_normalization(x_mixed_de_z1, axis=3, momentum=momentum, training=isTraining)
         x_mixed_de_a1 = tf.nn.leaky_relu(x_mixed_de_z1_bn)
 
     with tf.name_scope("x_de_layer_2"):
         x_mixed_de_z2 = tf.nn.conv2d_transpose(x_mixed_de_a1, parameters['x_dew2'],
-                                               output_shape=tf.stack([1, 200, 200, 128]), strides=[1, 2, 2, 1],
+                                               output_shape=tf.stack([1, 200, 200, 128]), strides=[1, 1, 1, 1],
                                                padding='SAME') + parameters['x_deb2']
         x_mixed_de_z2_bn = tf.layers.batch_normalization(x_mixed_de_z2, axis=3, momentum=momentum, training=isTraining)
         x_mixed_de_a2 = tf.nn.leaky_relu(x_mixed_de_z2_bn)
@@ -187,8 +187,8 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
         x_mixed_de_z4 = tf.nn.conv2d_transpose(x_mixed_de_a3, parameters['x_dew4'],
                                                output_shape=tf.stack([1, 200, 200, 224]), strides=[1, 1, 1, 1],
                                                padding='SAME') + parameters['x_deb4']
-        # x_mixed_de_z4_bn = tf.layers.batch_normalization(x_mixed_de_z4, axis=3, momentum=momentum, training=isTraining)
-        # x_mixed_de_a4 = tf.nn.sigmoid(x_mixed_de_z4_bn)
+        # x_mixed_de_z4_bn = tf.layers.batch_normalization(x_mixed_de_z4, axis=3, momentum=momentum,
+        # training=isTraining) x_mixed_de_a4 = tf.nn.sigmoid(x_mixed_de_z4_bn)
 
     l2_loss = tf.nn.l2_loss(parameters['x_w1']) + tf.nn.l2_loss(parameters['x_w2']) + tf.nn.l2_loss(
         parameters['x_w3']) + tf.nn.l2_loss(parameters['x_w4']) \
