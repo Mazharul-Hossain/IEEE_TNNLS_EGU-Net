@@ -62,73 +62,73 @@ def initialize_parameters():
             "x_deb4": x_deb4}
 
 
-def my_network(x_pure, x_mixed, l_parameters, isTraining, keep_prob, momentum=0.9):
+def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9):
     with tf.name_scope("x_layer_1"):
-        x_pure_z1 = tf.matmul(x_pure, l_parameters['x_w1']) + l_parameters['x_b1']
+        x_pure_z1 = tf.matmul(x_pure, parameters['x_w1']) + parameters['x_b1']
         x_pure_z1_bn = tf.layers.batch_normalization(x_pure_z1, axis=1, momentum=momentum, training=isTraining,
                                                      name='l1')
         x_pure_z1_do = tf.nn.dropout(x_pure_z1_bn, keep_prob)
         x_pure_a1 = tf.nn.tanh(x_pure_z1_do)
 
-        x_mixed_z1 = tf.matmul(x_mixed, l_parameters['x_w1']) + l_parameters['x_b1']
+        x_mixed_z1 = tf.matmul(x_mixed, parameters['x_w1']) + parameters['x_b1']
         x_mixed_z1_bn = tf.layers.batch_normalization(x_mixed_z1, axis=1, momentum=momentum, training=isTraining,
                                                       name='l1', reuse=True)
         x_mixed_z1_do = tf.nn.dropout(x_mixed_z1_bn, keep_prob)
         x_mixed_a1 = tf.nn.tanh(x_mixed_z1_do)
 
     with tf.name_scope("x_layer_2"):
-        x_pure_z2 = tf.matmul(x_pure_a1, l_parameters['x_w2']) + l_parameters['x_b2']
+        x_pure_z2 = tf.matmul(x_pure_a1, parameters['x_w2']) + parameters['x_b2']
         x_pure_z2_bn = tf.layers.batch_normalization(x_pure_z2, axis=1, momentum=momentum, training=isTraining,
                                                      name='l2')
         x_pure_a2 = tf.nn.tanh(x_pure_z2_bn)
 
-        x_mixed_z2 = tf.matmul(x_mixed_a1, l_parameters['x_w2']) + l_parameters['x_b2']
+        x_mixed_z2 = tf.matmul(x_mixed_a1, parameters['x_w2']) + parameters['x_b2']
         x_mixed_z2_bn = tf.layers.batch_normalization(x_mixed_z2, axis=1, momentum=momentum, training=isTraining,
                                                       name='l2', reuse=True)
         x_mixed_a2 = tf.nn.tanh(x_mixed_z2_bn)
 
     with tf.name_scope("x_layer_3"):
-        x_pure_z3 = tf.matmul(x_pure_a2, l_parameters['x_w3']) + l_parameters['x_b3']
+        x_pure_z3 = tf.matmul(x_pure_a2, parameters['x_w3']) + parameters['x_b3']
         x_pure_z3_bn = tf.layers.batch_normalization(x_pure_z3, axis=1, momentum=momentum, training=isTraining,
                                                      name='l3')
         x_pure_a3 = tf.nn.relu(x_pure_z3_bn)
 
-        x_mixed_z3 = tf.matmul(x_mixed_a2, l_parameters['x_w3']) + l_parameters['x_b3']
+        x_mixed_z3 = tf.matmul(x_mixed_a2, parameters['x_w3']) + parameters['x_b3']
         x_mixed_z3_bn = tf.layers.batch_normalization(x_mixed_z3, axis=1, momentum=momentum, training=isTraining,
                                                       name='l3', reuse=True)
         x_mixed_a3 = tf.nn.relu(x_mixed_z3_bn)
 
     with tf.name_scope("x_layer_4"):
-        x_pure_z4 = tf.add(tf.matmul(x_pure_a3, l_parameters['x_w4']), l_parameters['x_b4'])
+        x_pure_z4 = tf.add(tf.matmul(x_pure_a3, parameters['x_w4']), parameters['x_b4'])
         abundances_pure = tf.nn.softmax(x_pure_z4)
 
-        x_mixed_z4 = tf.add(tf.matmul(x_mixed_a3, l_parameters['x_w4']), l_parameters['x_b4'])
+        x_mixed_z4 = tf.add(tf.matmul(x_mixed_a3, parameters['x_w4']), parameters['x_b4'])
         abundances_mixed = tf.nn.softmax(x_mixed_z4)
 
     with tf.name_scope("x_de_layer_1"):
-        x_mixed_de_z1 = tf.matmul(abundances_mixed, l_parameters['x_dew1']) + l_parameters['x_deb1']
+        x_mixed_de_z1 = tf.matmul(abundances_mixed, parameters['x_dew1']) + parameters['x_deb1']
         x_mixed_de_z1_bn = tf.layers.batch_normalization(x_mixed_de_z1, axis=1, momentum=momentum, training=isTraining)
         x_mixed_de_a1 = tf.nn.sigmoid(x_mixed_de_z1_bn)
 
     with tf.name_scope("x_de_layer_2"):
-        x_mixed_de_z2 = tf.matmul(x_mixed_de_a1, l_parameters['x_dew2']) + l_parameters['x_deb2']
+        x_mixed_de_z2 = tf.matmul(x_mixed_de_a1, parameters['x_dew2']) + parameters['x_deb2']
         x_mixed_de_z2_bn = tf.layers.batch_normalization(x_mixed_de_z2, axis=1, momentum=momentum, training=isTraining)
         x_mixed_de_a2 = tf.nn.sigmoid(x_mixed_de_z2_bn)
 
     with tf.name_scope("x_de_layer_3"):
-        x_mixed_de_z3 = tf.matmul(x_mixed_de_a2, l_parameters['x_dew3']) + l_parameters['x_deb3']
+        x_mixed_de_z3 = tf.matmul(x_mixed_de_a2, parameters['x_dew3']) + parameters['x_deb3']
         x_mixed_de_z3_bn = tf.layers.batch_normalization(x_mixed_de_z3, axis=1, momentum=momentum, training=isTraining)
         x_mixed_de_a3 = tf.nn.sigmoid(x_mixed_de_z3_bn)
 
     with tf.name_scope("x_de_layer_4"):
-        x_mixed_de_z4 = tf.matmul(x_mixed_de_a3, l_parameters['x_dew4']) + l_parameters['x_deb4']
+        x_mixed_de_z4 = tf.matmul(x_mixed_de_a3, parameters['x_dew4']) + parameters['x_deb4']
         x_mixed_de_z4_bn = tf.layers.batch_normalization(x_mixed_de_z4, axis=1, momentum=momentum, training=isTraining)
         x_mixed_de_a4 = tf.nn.sigmoid(x_mixed_de_z4_bn)
 
-    l2_loss = tf.nn.l2_loss(l_parameters['x_w1']) + tf.nn.l2_loss(l_parameters['x_w2']) + tf.nn.l2_loss(
-        l_parameters['x_w3']) + tf.nn.l2_loss(l_parameters['x_w4']) \
-              + tf.nn.l2_loss(l_parameters['x_dew1']) + tf.nn.l2_loss(l_parameters['x_dew2']) + tf.nn.l2_loss(
-        l_parameters['x_dew3']) + tf.nn.l2_loss(l_parameters['x_dew4'])
+    l2_loss = tf.nn.l2_loss(parameters['x_w1']) + tf.nn.l2_loss(parameters['x_w2']) + tf.nn.l2_loss(
+        parameters['x_w3']) + tf.nn.l2_loss(parameters['x_w4']) + tf.nn.l2_loss(parameters['x_dew1']) + tf.nn.l2_loss(
+        parameters['x_dew2']) + tf.nn.l2_loss(
+        parameters['x_dew3']) + tf.nn.l2_loss(parameters['x_dew4'])
 
     return x_pure_z4, abundances_mixed, x_mixed_de_a4, l2_loss, abundances_pure, abundances_mixed
 
@@ -147,7 +147,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
     return cost, optimizer
 
 
-def train_my_network(x_pure_set, x_mixed_set, y_train, y_test, learning_rate_base=0.1, beta_reg=0.005, num_epochs=100,
+def train_my_network(x_pure_set, x_mixed_set, y_train, y_test, learning_rate_base=0.1, beta_reg=0.005, num_epochs=200,
                      minibatch_size=8000, print_cost=True):
     ops.reset_default_graph()
     tf.set_random_seed(1)
@@ -226,8 +226,8 @@ def train_my_network(x_pure_set, x_mixed_set, y_train, y_test, learning_rate_bas
                     print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
                         epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
 
-        _, axes = plt.subplots(nrows=1, ncols=3, figsize = (15, 5) )
-        
+        _, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+
         # plot the cost
         axes[0].plot(plot_epoch, np.squeeze(costs))
         axes[0].plot(plot_epoch, np.squeeze(costs_dev))
@@ -250,27 +250,31 @@ def train_my_network(x_pure_set, x_mixed_set, y_train, y_test, learning_rate_bas
 
         plt.savefig('Training-Val-Report.png', bbox_inches='tight')
         plt.show()
-
-        # lets save the l_parameters in a variable
+        # lets save the parameters in a variable
         parameters = sess.run(parameters)
         print("Parameters have been trained!")
         return parameters, val_acc, re.squeeze(), abund
 
 
-Pure_TrSet = scio.loadmat('Data/Pure_TrSet.mat')
-Mixed_TrSet = scio.loadmat('Data/Mixed_TrSet.mat')
+def main():
+    Pure_TrSet = scio.loadmat('Data/Pure_TrSet.mat')
+    Mixed_TrSet = scio.loadmat('Data/Mixed_TrSet.mat')
 
-TrLabel = scio.loadmat('Data/TrLabel.mat')
-TeLabel = scio.loadmat('Data/TeLabel.mat')
+    TrLabel = scio.loadmat('Data/TrLabel.mat')
+    TeLabel = scio.loadmat('Data/TeLabel.mat')
 
-Pure_TrSet = Pure_TrSet['Pure_TrSet']
-Mixed_TrSet = Mixed_TrSet['Mixed_TrSet']
-TrLabel = TrLabel['TrLabel']
-TeLabel = TeLabel['TeLabel']
+    Pure_TrSet = Pure_TrSet['Pure_TrSet']
+    Mixed_TrSet = Mixed_TrSet['Mixed_TrSet']
+    TrLabel = TrLabel['TrLabel']
+    TeLabel = TeLabel['TeLabel']
 
-Y_train = TrLabel
-Y_test = TeLabel
+    Y_train = TrLabel
+    Y_test = TeLabel
 
-parameters, val_acc, high_res, abund = train_my_network(Pure_TrSet, Mixed_TrSet, Y_train, Y_test)
-sio.savemat('abund.mat', {'abund': abund})
-sio.savemat('hi_res.mat', {'hi_res': high_res})
+    parameters, val_acc, high_res, abund = train_my_network(Pure_TrSet, Mixed_TrSet, Y_train, Y_test)
+    sio.savemat('abund.mat', {'abund': abund})
+    sio.savemat('hi_res.mat', {'hi_res': high_res})
+
+
+if __name__ == "__main__":
+    main()

@@ -45,10 +45,6 @@ def initialize_parameters():
                            initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_b3 = tf.get_variable("x_b3", [32], initializer=tf.constant_initializer(0.5))
 
-    x1_conv_w3 = tf.get_variable("x1_conv_w3", [3, 3, 128, 32], dtype=tf.float32,
-                                 initializer=tf.contrib.layers.xavier_initializer_conv2d())
-    x1_conv_b3 = tf.get_variable("x1_conv_b3", [32], initializer=tf.constant_initializer(0.5))
-
     x_w4 = tf.get_variable("x_w4", [1, 1, 32, 5], dtype=tf.float32,
                            initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_b4 = tf.get_variable("x_b4", [5], initializer=tf.constant_initializer(0.5))
@@ -61,15 +57,15 @@ def initialize_parameters():
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb1 = tf.get_variable("x_deb1", [32], initializer=tf.constant_initializer(0.5))
 
-    x_dew2 = tf.get_variable("x_dew2", [3, 3, 128, 32], dtype=tf.float32,
+    x_dew2 = tf.get_variable("x_dew2", [1, 1, 128, 32], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb2 = tf.get_variable("x_deb2", [128], initializer=tf.constant_initializer(0.5))
 
-    x_dew3 = tf.get_variable("x_dew3", [5, 5, 256, 128], dtype=tf.float32,
+    x_dew3 = tf.get_variable("x_dew3", [3, 3, 256, 128], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb3 = tf.get_variable("x_deb3", [256], initializer=tf.constant_initializer(0.5))
 
-    x_dew4 = tf.get_variable("x_dew4", [1, 1, 224, 256], dtype=tf.float32,
+    x_dew4 = tf.get_variable("x_dew4", [5, 5, 224, 256], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb4 = tf.get_variable("x_deb4", [224], initializer=tf.constant_initializer(0.5))
 
@@ -81,8 +77,6 @@ def initialize_parameters():
             "x1_conv_b1": x1_conv_b1,
             "x1_conv_w2": x1_conv_w2,
             "x1_conv_b2": x1_conv_b2,
-            "x1_conv_w3": x1_conv_w3,
-            "x1_conv_b3": x1_conv_b3,
             "x_w3": x_w3,
             "x_b3": x_b3,
             "x_w4": x_w4,
@@ -164,8 +158,8 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
         abundances_mixed = tf.nn.softmax(x_mixed_z4)
 
         x_mixed_a_z4 = tf.nn.conv2d_transpose(x_mixed_a3, parameters['x1_conv_w4'],
-                                            output_shape=tf.stack([1, 50, 50, 5]), strides=[1, 2, 2, 1],
-                                            padding='SAME') + parameters['x1_conv_b4']
+                                              output_shape=tf.stack([1, 50, 50, 5]), strides=[1, 2, 2, 1],
+                                              padding='SAME') + parameters['x1_conv_b4']
         x_mixed_a4 = tf.nn.softmax(x_mixed_a_z4)
 
     with tf.name_scope("x_de_layer_1"):
@@ -184,15 +178,15 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
 
     with tf.name_scope("x_de_layer_3"):
         x_mixed_de_z3 = tf.nn.conv2d_transpose(x_mixed_de_a2, parameters['x_dew3'],
-                                    output_shape=tf.stack([1, 200, 200, 256]), strides=[1, 1, 1, 1], 
-                                    padding='SAME') + parameters['x_deb3']
+                                               output_shape=tf.stack([1, 200, 200, 256]), strides=[1, 1, 1, 1],
+                                               padding='SAME') + parameters['x_deb3']
         x_mixed_de_z3_bn = tf.layers.batch_normalization(x_mixed_de_z3, axis=3, momentum=momentum, training=isTraining)
         x_mixed_de_a3 = tf.nn.sigmoid(x_mixed_de_z3_bn)
 
     with tf.name_scope("x_de_layer_4"):
         x_mixed_de_z4 = tf.nn.conv2d_transpose(x_mixed_de_a3, parameters['x_dew4'],
-                                    output_shape=tf.stack([1, 200, 200, 224]), strides=[1, 1, 1, 1], 
-                                    padding='SAME') + parameters['x_deb4']
+                                               output_shape=tf.stack([1, 200, 200, 224]), strides=[1, 1, 1, 1],
+                                               padding='SAME') + parameters['x_deb4']
         # x_mixed_de_z4_bn = tf.layers.batch_normalization(x_mixed_de_z4, axis=3, momentum=momentum, training=isTraining)
         # x_mixed_de_a4 = tf.nn.sigmoid(x_mixed_de_z4_bn)
 
@@ -214,8 +208,8 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
     r3 = tf.reshape(r2, [r1_shape[0], r1_shape[1], r1_shape[2]])
 
     with tf.name_scope("cost"):
-        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_est, labels=y_re)) + \
-            reg * l2_loss + tf.reduce_mean(tf.abs(r1 - r3))
+        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_est, labels=y_re)) \
+               + reg * l2_loss + 1 * tf.reduce_mean(tf.abs(r1 - r3))
 
     with tf.name_scope("optimization"):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -239,7 +233,7 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
 
 
 def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, learning_rate_base=0.01, beta_reg=0.005,
-                    num_epochs=100, minibatch_size=8000, print_cost=True):
+                     num_epochs=100, minibatch_size=8000, print_cost=True):
     ops.reset_default_graph()
     tf.set_random_seed(1)
     seed = 1
@@ -258,13 +252,14 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
     parameters = initialize_parameters()
     for k, v in parameters.items():
-        k = f"weights/{k}" if "_w" in k or "_dew" in k  else f"biases/{k}"
+        k = f"weights/{k}" if "_w" in k or "_dew" in k else f"biases/{k}"
         tf.summary.histogram(k, v)
 
     with tf.name_scope("network"):
-        x_pure_layer, x_mixed_layer, x_mixed_de_layer, l2_loss, abundances_pure = my_network(x_train_pure, x_train_mixed,
-                                                                                            parameters, isTraining,
-                                                                                            keep_prob)
+        x_pure_layer, x_mixed_layer, x_mixed_de_layer, l2_loss, abundances_pure = my_network(x_train_pure,
+                                                                                             x_train_mixed,
+                                                                                             parameters, isTraining,
+                                                                                             keep_prob)
 
     global_step = tf.Variable(0, trainable=False)
     learning_rate = tf.train.exponential_decay(
@@ -277,10 +272,6 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     with tf.name_scope("metrics"):
 
         accuracy = tf.losses.absolute_difference(labels=y, predictions=abundances_pure)
-        
-        # r1_shape = x_mixed_de_layer.get_shape().as_list()
-        # r3 = tf.reshape(x_train_mixed, [r1_shape[0], r1_shape[1], r1_shape[2]])
-        # reco_error = tf.losses.absolute_difference(labels=r3, predictions=x_mixed_de_layer)
 
     init = tf.global_variables_initializer()
 
@@ -298,7 +289,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
     with tf.Session() as sess:
         # with tf_debug.TensorBoardDebugWrapperSession(old_sess, "lynx:8080") as sess:
-            
+
         sess.run(init)
 
         # Do the training loop
@@ -311,16 +302,17 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
             for minibatch in minibatches:
                 # Select a minibatch
                 (batch_x1, batch_x2, batch_y) = minibatch
-                _, minibatch_cost, minibatch_acc, summary, t_summary = sess.run([optimizer, cost, accuracy, merged, common_summary],
-                                                            feed_dict={x_train_pure: batch_x1,
-                                                                    x_train_mixed: x_mixed_set, y: batch_y,
-                                                                    isTraining: True, keep_prob: 0.9})
+                _, minibatch_cost, minibatch_acc, summary, t_summary = sess.run(
+                    [optimizer, cost, accuracy, merged, common_summary],
+                    feed_dict={x_train_pure: batch_x1,
+                               x_train_mixed: x_mixed_set, y: batch_y,
+                               isTraining: True, keep_prob: 0.9})
                 epoch_cost += minibatch_cost
                 epoch_acc += minibatch_acc
 
             epoch_cost_f = epoch_cost / (num_minibatches + 1)
             epoch_acc_f = epoch_acc / (num_minibatches + 1)
-            
+
             writer.add_summary(summary, global_step=epoch)
             train_writer.add_summary(t_summary, global_step=epoch)
 
@@ -328,8 +320,8 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
                 re, abund, epoch_cost_dev, epoch_acc_dev, lr, v_summary = sess.run(
                     [x_mixed_de_layer, abundances_pure, cost, accuracy, learning_rate, common_summary],
                     feed_dict={x_train_pure: x_mixed_set1,
-                            x_train_mixed: x_mixed_set, y: y_test,
-                            isTraining: True, keep_prob: 1})
+                               x_train_mixed: x_mixed_set, y: y_test,
+                               isTraining: True, keep_prob: 1})
 
                 costs.append(epoch_cost_f)
                 train_acc.append(epoch_acc_f)
@@ -337,20 +329,20 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
                 val_acc.append(epoch_acc_dev)
                 plot_epoch.append(epoch)
                 plot_lr.append(lr)
-                
+
                 val_writer.add_summary(v_summary, global_step=epoch)
 
                 if epoch % 20 == 0:
                     print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
                         epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
         re, abund = sess.run([x_mixed_de_layer, abundances_pure],
-            feed_dict={
-                x_train_pure: x_mixed_set1,
-                x_train_mixed: x_mixed_set, y: y_test,
-                isTraining: False, keep_prob: 1})
+                             feed_dict={
+                                 x_train_pure: x_mixed_set1,
+                                 x_train_mixed: x_mixed_set, y: y_test,
+                                 isTraining: False, keep_prob: 1})
 
-        _, axes = plt.subplots(nrows=1, ncols=3, figsize = (15, 5) )
-        
+        _, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+
         # plot the cost
         axes[0].plot(plot_epoch, np.squeeze(costs))
         axes[0].plot(plot_epoch, np.squeeze(costs_dev))
@@ -373,11 +365,11 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
 
         plt.savefig('Training-Val-Report.png', bbox_inches='tight')
         plt.show()
-
-        # lets save the l_parameters in a variable
+        # lets save the parameters in a variable
         parameters = sess.run(parameters)
         print("Parameters have been trained!")
         return parameters, val_acc, re.squeeze(), abund
+
 
 def main():
     Pure_TrSet = scio.loadmat('Data/Pure_TrSet.mat')
@@ -390,12 +382,14 @@ def main():
     Mixed_TrSet = Mixed_TrSet['Mixed_TrSet']
     TrLabel = TrLabel['TrLabel']
     TeLabel = TeLabel['TeLabel']
-    # print(f"Pure_TrSet: {Pure_TrSet.shape} Mixed_TrSet: {Mixed_TrSet.shape} TrLabel: {TrLabel.shape} TeLabel: {TeLabel.shape}")
+    # print(f"Pure_TrSet: {Pure_TrSet.shape} Mixed_TrSet: {Mixed_TrSet.shape}
+    # TrLabel: {TrLabel.shape} TeLabel: {TeLabel.shape}")
     # Pure_TrSet: (8000, 224) Mixed_TrSet: (40000, 224) TrLabel: (8000, 5) TeLabel: (40000, 5)
 
     parameters, val_acc, high_res, abund = train_my_network(Pure_TrSet, Mixed_TrSet, Mixed_TrSet, TrLabel, TeLabel)
     sio.savemat('abund.mat', {'abund': abund})
     sio.savemat('hi_res.mat', {'hi_res': high_res})
+
 
 if __name__ == "__main__":
     main()
