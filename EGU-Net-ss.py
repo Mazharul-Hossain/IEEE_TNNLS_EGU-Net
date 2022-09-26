@@ -187,14 +187,14 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
                                     strides=[1, 1, 1, 1],
                                     padding='SAME') + parameters['x_deb3']
         x_mixed_de_z3_bn = tf.layers.batch_normalization(x_mixed_de_z3, axis=3, momentum=momentum, training=isTraining)
-        x_mixed_de_a3 = tf.nn.leaky_relu(x_mixed_de_z3_bn)
+        x_mixed_de_a3 = tf.nn.sigmoid(x_mixed_de_z3_bn)
 
     with tf.name_scope("x_de_layer_4"):
         x_mixed_de_z4 = tf.nn.conv2d(x_mixed_de_a3, parameters['x_dew4'],
                                     strides=[1, 1, 1, 1],
                                     padding='SAME') + parameters['x_deb4']
-        x_mixed_de_z4_bn = tf.layers.batch_normalization(x_mixed_de_z4, axis=3, momentum=momentum, training=isTraining)
-        x_mixed_de_a4 = tf.nn.sigmoid(x_mixed_de_z4_bn)
+        # x_mixed_de_z4_bn = tf.layers.batch_normalization(x_mixed_de_z4, axis=3, momentum=momentum, training=isTraining)
+        # x_mixed_de_a4 = tf.nn.sigmoid(x_mixed_de_z4_bn)
 
     l2_loss = tf.nn.l2_loss(parameters['x_w1']) + tf.nn.l2_loss(parameters['x_w2']) + tf.nn.l2_loss(
         parameters['x_w3']) + tf.nn.l2_loss(parameters['x_w4']) \
@@ -203,7 +203,7 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
               + tf.nn.l2_loss(parameters['x_dew1']) + tf.nn.l2_loss(parameters['x_dew2']) + tf.nn.l2_loss(
         parameters['x_dew3']) + tf.nn.l2_loss(parameters['x_dew4'])
 
-    return x_pure_z4, abundances_mixed, x_mixed_de_a4, l2_loss, abundances_pure
+    return x_pure_z4, abundances_mixed, x_mixed_de_z4, l2_loss, abundances_pure
 
 
 def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, global_step):
