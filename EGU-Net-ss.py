@@ -61,15 +61,15 @@ def initialize_parameters():
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb1 = tf.get_variable("x_deb1", [32], initializer=tf.constant_initializer(0.5))
 
-    x_dew2 = tf.get_variable("x_dew2", [1, 1, 128, 32], dtype=tf.float32,
+    x_dew2 = tf.get_variable("x_dew2", [3, 3, 128, 32], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb2 = tf.get_variable("x_deb2", [128], initializer=tf.constant_initializer(0.5))
 
-    x_dew3 = tf.get_variable("x_dew3", [3, 3, 128, 256], dtype=tf.float32,
+    x_dew3 = tf.get_variable("x_dew3", [5, 5, 128, 256], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb3 = tf.get_variable("x_deb3", [256], initializer=tf.constant_initializer(0.5))
 
-    x_dew4 = tf.get_variable("x_dew4", [5, 5, 256, 224], dtype=tf.float32,
+    x_dew4 = tf.get_variable("x_dew4", [1, 1, 256, 224], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb4 = tf.get_variable("x_deb4", [224], initializer=tf.constant_initializer(0.5))
 
@@ -184,15 +184,13 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
 
     with tf.name_scope("x_de_layer_3"):
         x_mixed_de_z3 = tf.nn.conv2d(x_mixed_de_a2, parameters['x_dew3'],
-                                    strides=[1, 1, 1, 1],
-                                    padding='SAME') + parameters['x_deb3']
+                                    strides=[1, 1, 1, 1], padding='SAME') + parameters['x_deb3']
         x_mixed_de_z3_bn = tf.layers.batch_normalization(x_mixed_de_z3, axis=3, momentum=momentum, training=isTraining)
         x_mixed_de_a3 = tf.nn.sigmoid(x_mixed_de_z3_bn)
 
     with tf.name_scope("x_de_layer_4"):
         x_mixed_de_z4 = tf.nn.conv2d(x_mixed_de_a3, parameters['x_dew4'],
-                                    strides=[1, 1, 1, 1],
-                                    padding='SAME') + parameters['x_deb4']
+                                    strides=[1, 1, 1, 1], padding='SAME') + parameters['x_deb4']
         # x_mixed_de_z4_bn = tf.layers.batch_normalization(x_mixed_de_z4, axis=3, momentum=momentum, training=isTraining)
         # x_mixed_de_a4 = tf.nn.sigmoid(x_mixed_de_z4_bn)
 
