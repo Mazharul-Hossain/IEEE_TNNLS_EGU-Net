@@ -49,15 +49,15 @@ def initialize_parameters():
                            initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_b4 = tf.get_variable("x_b4", [5], initializer=tf.constant_initializer(0.5))
 
-    x1_conv_w4 = tf.get_variable("x1_conv_w4", [1, 1, 5, 32], dtype=tf.float32,
+    x1_conv_w4 = tf.get_variable("x1_conv_w4", [2, 2, 5, 32], dtype=tf.float32,
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x1_conv_b4 = tf.get_variable("x1_conv_b4", [5], initializer=tf.constant_initializer(0.5))
 
-    x_dew1 = tf.get_variable("x_dew1", [1, 1, 32, 5], dtype=tf.float32,
+    x_dew1 = tf.get_variable("x_dew1", [2, 2, 32, 5], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb1 = tf.get_variable("x_deb1", [32], initializer=tf.constant_initializer(0.5))
 
-    x_dew2 = tf.get_variable("x_dew2", [1, 1, 128, 32], dtype=tf.float32,
+    x_dew2 = tf.get_variable("x_dew2", [2, 2, 128, 32], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb2 = tf.get_variable("x_deb2", [128], initializer=tf.constant_initializer(0.5))
 
@@ -158,20 +158,20 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
         abundances_mixed = tf.nn.softmax(x_mixed_z4)
 
         x_mixed_a_z4 = tf.nn.conv2d_transpose(x_mixed_a3, parameters['x1_conv_w4'],
-                                              output_shape=tf.stack([1, 200, 200, 5]), strides=[1, 8, 8, 1],
+                                              output_shape=tf.stack([1, 50, 50, 5]), strides=[1, 2, 2, 1],
                                               padding='SAME') + parameters['x1_conv_b4']
         x_mixed_a4 = tf.nn.softmax(x_mixed_a_z4)
 
     with tf.name_scope("x_de_layer_1"):
         x_mixed_de_z1 = tf.nn.conv2d_transpose(x_mixed_a4, parameters['x_dew1'],
-                                               output_shape=tf.stack([1, 200, 200, 32]), strides=[1, 1, 1, 1],
+                                               output_shape=tf.stack([1, 100, 100, 32]), strides=[1, 2, 2, 1],
                                                padding='SAME') + parameters['x_deb1']
         x_mixed_de_z1_bn = tf.layers.batch_normalization(x_mixed_de_z1, axis=3, momentum=momentum, training=isTraining)
         x_mixed_de_a1 = tf.nn.leaky_relu(x_mixed_de_z1_bn)
 
     with tf.name_scope("x_de_layer_2"):
         x_mixed_de_z2 = tf.nn.conv2d_transpose(x_mixed_de_a1, parameters['x_dew2'],
-                                               output_shape=tf.stack([1, 200, 200, 128]), strides=[1, 1, 1, 1],
+                                               output_shape=tf.stack([1, 200, 200, 128]), strides=[1, 2, 2, 1],
                                                padding='SAME') + parameters['x_deb2']
         x_mixed_de_z2_bn = tf.layers.batch_normalization(x_mixed_de_z2, axis=3, momentum=momentum, training=isTraining)
         x_mixed_de_a2 = tf.nn.leaky_relu(x_mixed_de_z2_bn)
