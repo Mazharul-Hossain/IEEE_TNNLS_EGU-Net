@@ -53,7 +53,7 @@ def initialize_parameters():
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x1_conv_b4 = tf.get_variable("x1_conv_b4", [5], initializer=tf.constant_initializer(0.5))
 
-    x_dew1 = tf.get_variable("x_dew1", [1, 1, 32, 5], dtype=tf.float32,
+    x_dew1 = tf.get_variable("x_dew1", [2, 2, 32, 5], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb1 = tf.get_variable("x_deb1", [32], initializer=tf.constant_initializer(0.5))
 
@@ -65,7 +65,7 @@ def initialize_parameters():
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb3 = tf.get_variable("x_deb3", [256], initializer=tf.constant_initializer(0.5))
 
-    x_dew4 = tf.get_variable("x_dew4", [5, 5, 256, 224], dtype=tf.float32,
+    x_dew4 = tf.get_variable("x_dew4", [1, 1, 256, 224], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb4 = tf.get_variable("x_deb4", [224], initializer=tf.constant_initializer(0.5))
 
