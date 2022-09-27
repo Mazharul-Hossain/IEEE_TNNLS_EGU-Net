@@ -52,11 +52,11 @@ def initialize_parameters():
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x1_conv_b4 = tf.get_variable("x1_conv_b4", [5], initializer=tf.constant_initializer(0.5))
 
-    x_dew1 = tf.get_variable("x_dew1", [2, 2, 32, 5], dtype=tf.float32,
+    x_dew1 = tf.get_variable("x_dew1", [2, 2, 32, 133], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb1 = tf.get_variable("x_deb1", [32], initializer=tf.constant_initializer(0.5))
 
-    x_dew2 = tf.get_variable("x_dew2", [4, 4, 128, 32], dtype=tf.float32,
+    x_dew2 = tf.get_variable("x_dew2", [4, 4, 128, 288], dtype=tf.float32,
                              initializer=tf.contrib.layers.xavier_initializer_conv2d())
     x_deb2 = tf.get_variable("x_deb2", [128], initializer=tf.constant_initializer(0.5))
 
@@ -163,7 +163,7 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
 
     with tf.name_scope("x_de_layer_1"):
         x_mixed_a4 = tf.concat([x_mixed_a4, x_mixed_conv_a2], axis=3)
-        print("x_mixed_a4", x_mixed_a4.get_shape().as_list())
+        # print("x_mixed_a4", x_mixed_a4.get_shape().as_list()) [1, 50, 50, 133]
         x_mixed_de_z1 = tf.nn.conv2d_transpose(x_mixed_a4, parameters['x_dew1'],
                                                output_shape=tf.stack([1, 100, 100, 32]), strides=[1, 2, 2, 1],
                                                padding='SAME') + parameters['x_deb1']
@@ -172,7 +172,7 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
 
     with tf.name_scope("x_de_layer_2"):
         x_mixed_de_a1 = tf.concat([x_mixed_de_a1, x_mixed_conv_a1], axis=3)
-        print("x_mixed_de_a1", x_mixed_de_a1.get_shape().as_list())
+        # print("x_mixed_de_a1", x_mixed_de_a1.get_shape().as_list())  [1, 100, 100, 288]
         x_mixed_de_z2 = tf.nn.conv2d_transpose(x_mixed_de_a1, parameters['x_dew2'],
                                                output_shape=tf.stack([1, 200, 200, 128]), strides=[1, 2, 2, 1],
                                                padding='SAME') + parameters['x_deb2']
