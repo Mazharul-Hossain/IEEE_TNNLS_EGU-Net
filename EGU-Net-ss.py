@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import scipy.io as scio
-import scipy.io as sio
 from tf_utils import random_mini_batches
 from tensorflow.python.framework import ops
 from tensorflow.python import debug as tf_debug
@@ -163,6 +162,8 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
         x_mixed_a4 = tf.nn.softmax(x_mixed_a_z4)
 
     with tf.name_scope("x_de_layer_1"):
+        x_mixed_a4 = tf.concat([x_mixed_a4, x_mixed_conv_a2], axis=3)
+        print("x_mixed_a4", x_mixed_a4.get_shape().as_list())
         x_mixed_de_z1 = tf.nn.conv2d_transpose(x_mixed_a4, parameters['x_dew1'],
                                                output_shape=tf.stack([1, 100, 100, 32]), strides=[1, 2, 2, 1],
                                                padding='SAME') + parameters['x_deb1']
@@ -170,6 +171,8 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
         x_mixed_de_a1 = tf.nn.leaky_relu(x_mixed_de_z1_bn)
 
     with tf.name_scope("x_de_layer_2"):
+        x_mixed_de_a1 = tf.concat([x_mixed_de_a1, x_mixed_conv_a1], axis=3)
+        print("x_mixed_de_a1", x_mixed_de_a1.get_shape().as_list())
         x_mixed_de_z2 = tf.nn.conv2d_transpose(x_mixed_de_a1, parameters['x_dew2'],
                                                output_shape=tf.stack([1, 200, 200, 128]), strides=[1, 2, 2, 1],
                                                padding='SAME') + parameters['x_deb2']
@@ -389,8 +392,8 @@ def main():
     # Pure_TrSet: (8000, 224) Mixed_TrSet: (40000, 224) TrLabel: (8000, 5) TeLabel: (40000, 5)
 
     parameters, val_acc, high_res, abund = train_my_network(Pure_TrSet, Mixed_TrSet, Mixed_TrSet, TrLabel, TeLabel)
-    sio.savemat('abund.mat', {'abund': abund})
-    sio.savemat('hi_res.mat', {'hi_res': high_res})
+    scio.savemat('abund.mat', {'abund': abund})
+    scio.savemat('hi_res.mat', {'hi_res': high_res})
 
 
 if __name__ == "__main__":
