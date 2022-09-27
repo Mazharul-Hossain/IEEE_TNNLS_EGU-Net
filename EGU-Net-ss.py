@@ -1,4 +1,6 @@
 # import library
+from datetime import datetime
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -213,9 +215,8 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
     r3 = tf.reshape(r2, [r1_shape[0], r1_shape[1], r1_shape[2]])
 
     with tf.name_scope("cost"):
-        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_est, labels=y_re)) \
-               + reg * l2_loss 
-            #    + 1 * tf.reduce_mean(tf.abs(r1 - r3))
+        # cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_est, labels=y_re)) \
+        cost = reg * l2_loss + 1 * tf.reduce_mean(tf.abs(r1 - r3))
 
     with tf.name_scope("optimization"):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -240,9 +241,12 @@ def my_network_optimization(y_est, y_re, r1, r2, l2_loss, reg, learning_rate, gl
 
 def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, learning_rate_base=0.01, beta_reg=0.005,
                      num_epochs=100, minibatch_size=8000, print_cost=True):
+    training_tag = datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = f"logs/{training_tag}"
+
     ops.reset_default_graph()
-    tf.set_random_seed(1)
-    seed = 1
+    # tf.set_random_seed(1)
+    seed = random.randint(1, 1000)
     (m, n_x1) = x_pure_set.shape
     (m1, n_x2) = x_mixed_set.shape
     (m, n_y) = y_train.shape
@@ -284,14 +288,14 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     # https://stackoverflow.com/a/48928133/2049763 https://stackoverflow.com/a/49100101/2049763
     tf.summary.scalar('learning rate', learning_rate)
     merged = tf.summary.merge_all()
-    writer = tf.summary.FileWriter('logs/train_log_layer', tf.get_default_graph())
+    writer = tf.summary.FileWriter(f'{log_dir}/train_log_layer', tf.get_default_graph())
 
     # https://stackoverflow.com/a/47098910/2049763
     common_summary = tf.summary.merge(
         [tf.summary.scalar('Absolute Error', accuracy),
          tf.summary.scalar('Loss', cost)])
-    train_writer = tf.summary.FileWriter('logs/train')
-    val_writer = tf.summary.FileWriter('logs/valid')
+    train_writer = tf.summary.FileWriter(f'{log_dir}/train')
+    val_writer = tf.summary.FileWriter(f'{log_dir}/valid')
 
     # https://cv-tricks.com/tensorflow-tutorial/save-restore-tensorflow-models-quick-complete-tutorial/
     model_saver = tf.train.Saver()
@@ -300,7 +304,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
         # with tf_debug.TensorBoardDebugWrapperSession(old_sess, "lynx:8080") as sess:
 
         sess.run(init)
-        model_saver.save(sess, 'logs/my_model')
+        model_saver.save(sess, f'{log_dir}/my_model')
 
         # Do the training loop
         for epoch in range(1, num_epochs + 1):
@@ -346,7 +350,7 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
                     print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
                         epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
         
-        model_saver.save(sess, 'logs/my-model', global_step=num_epochs, write_meta_graph=False)
+        model_saver.save(sess, f'{log_dir}/my-model', global_step=num_epochs, write_meta_graph=False)
         re, abund = sess.run([x_mixed_de_layer, abundances_pure],
                              feed_dict={
                                  x_train_pure: x_mixed_set1,
