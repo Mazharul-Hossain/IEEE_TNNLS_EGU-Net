@@ -181,7 +181,7 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
 
     with tf.name_scope("x_de_layer_3"):
         x_mixed_de_z3 = tf.nn.conv2d(x_mixed_de_a2, parameters['x_dew3'],
-                                    # output_shape=tf.stack([1, 200, 200, 256]), 
+                                    # output_shape=tf.stack([1, 200, 200, 256]),
                                     strides=[1, 1, 1, 1],
                                     padding='SAME') + parameters['x_deb3']
         x_mixed_de_z3_bn = tf.layers.batch_normalization(x_mixed_de_z3, axis=3, momentum=momentum, training=isTraining)
@@ -189,7 +189,7 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
 
     with tf.name_scope("x_de_layer_4"):
         x_mixed_de_z4 = tf.nn.conv2d(x_mixed_de_a3, parameters['x_dew4'],
-                                    # output_shape=tf.stack([1, 200, 200, 224]), 
+                                    # output_shape=tf.stack([1, 200, 200, 224]),
                                     strides=[1, 1, 1, 1],
                                     padding='SAME') + parameters['x_deb4']
         # x_mixed_de_z4_bn = tf.layers.batch_normalization(x_mixed_de_z4, axis=3, momentum=momentum,
@@ -292,10 +292,14 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
     train_writer = tf.summary.FileWriter('logs/train')
     val_writer = tf.summary.FileWriter('logs/valid')
 
+    # https://cv-tricks.com/tensorflow-tutorial/save-restore-tensorflow-models-quick-complete-tutorial/
+    model_saver = tf.train.Saver()
+
     with tf.Session() as sess:
         # with tf_debug.TensorBoardDebugWrapperSession(old_sess, "lynx:8080") as sess:
 
         sess.run(init)
+        model_saver.save(sess, 'logs/my_model')
 
         # Do the training loop
         for epoch in range(1, num_epochs + 1):
@@ -340,6 +344,8 @@ def train_my_network(x_pure_set, x_mixed_set, x_mixed_set1, y_train, y_test, lea
                 if epoch % 20 == 0:
                     print("epoch %i: Train_loss: %f, Val_loss: %f, Train_acc: %f, Val_acc: %f" % (
                         epoch, epoch_cost_f, epoch_cost_dev, epoch_acc_f, epoch_acc_dev))
+        
+        model_saver.save(sess, 'logs/my-model', global_step=num_epochs, write_meta_graph=False)
         re, abund = sess.run([x_mixed_de_layer, abundances_pure],
                              feed_dict={
                                  x_train_pure: x_mixed_set1,
