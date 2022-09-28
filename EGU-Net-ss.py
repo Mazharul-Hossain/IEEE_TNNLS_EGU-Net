@@ -200,7 +200,8 @@ def my_network(x_pure, x_mixed, parameters, isTraining, keep_prob, momentum=0.9)
         abundances_mixed = tf.transpose(x_mixed_de_z4, [0, 3, 1, 2])
         abundances_mixed_shape = abundances_mixed.get_shape().as_list()
         abundances_mixed = tf.reshape(abundances_mixed, [abundances_mixed_shape[0], abundances_mixed_shape[1], -1])
-        abundances_mixed = tf.layers.Dense(5, activation='softmax')(abundances_mixed)
+        abundances_mixed = tf.layers.Dense(5, activation='softmax', 
+                                kernel_initializer='glorot_uniform', bias_initializer='zeros')(abundances_mixed)
         print("abundances_mixed", abundances_mixed.get_shape().as_list())
 
     l2_loss = tf.nn.l2_loss(parameters['x_w1']) + tf.nn.l2_loss(parameters['x_w2']) + tf.nn.l2_loss(
